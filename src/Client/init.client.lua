@@ -15,13 +15,11 @@ Knit.PlayerGui = Knit.LocalPlayer:WaitForChild("PlayerGui")
 Knit.Assets = ReplicatedStorage.Assets
 
 -- EXPOSE CLIENT MODULES
-Knit.Modules = script.Parent:WaitForChild("Modules")
+Knit.Modules = script:WaitForChild("Modules")
 
 --EXPOSE SHARED MODULES
 Knit.SharedModules = game.ReplicatedStorage.Shared.Modules
 Knit.Helpers = Knit.SharedModules.Helpers
-
-Knit.Enums = require(Knit.SharedModules.Enums)
 Knit.GameData = Knit.SharedModules.Data
 Knit.Packages = ReplicatedStorage.Packages
 
