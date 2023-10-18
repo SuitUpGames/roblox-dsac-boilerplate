@@ -1,0 +1,48 @@
+{
+    "name": "Boilerplate Project",
+    "globIgnorePaths": [
+        "src/**/*.spec.lua",
+        "Packages/**/*.spec.lua"
+    ],
+    "tree": {
+        "$className": "DataModel",
+        "$ignoreUnknownInstances": true,
+        "ReplicatedStorage": {
+            "$ignoreUnknownInstances": true,
+            "$className": "ReplicatedStorage",
+            "$path": "src/ReplicatedStorage",
+            "Shared": {
+                "$className": "Folder",
+                "$path": "src/Shared"
+            },
+            "Packages": {
+                "$className": "Folder",
+                "$path": "Packages"
+            }
+        },
+        "ServerScriptService": {
+            "$ignoreUnknownInstances": true,
+            "$className": "ServerScriptService",
+            "$path": "src/ServerRunner"
+        },
+        "ServerStorage": {
+            "$ignoreUnknownInstances": true,
+            "$className": "ServerStorage",
+            "$path": "src/Server"
+        },
+        "ReplicatedFirst": {
+            "$ignoreUnknownInstances": true,
+            "$className": "ReplicatedFirst",
+            "$path": "src/ReplicatedFirst"
+        },
+        "StarterPlayer": {
+            "$ignoreUnknownInstances": true,
+            "$className": "StarterPlayer",
+            "StarterPlayerScripts": {
+                "$ignoreUnknownInstances": true,
+                "$className": "StarterPlayerScripts",
+                "$path": "src/Client"
+            }
+        }
+    }
+}
