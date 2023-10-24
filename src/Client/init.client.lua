@@ -28,20 +28,12 @@ Knit.IsStudio = game:GetService("RunService"):IsStudio()
 Knit.IsClient = game:GetService("RunService"):IsClient()
 Knit.IsServer = game:GetService("RunService"):IsServer()
 
--- DISABLE HURT FLASH IN COREGUI
-local StarterGui = game:GetService("StarterGui")
-pcall(function()
-	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
-	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
-end)
-
 -- ADD CONTROLLERS
-local Controllers = script.Parent.Controllers
-require(script.Parent.Interface)
+local Controllers = script:WaitForChild("Controllers")
 Knit.AddControllersDeep(Controllers)
 
 -- ADD COMPONENTS
-local Components = script.Parent.Components
+local Components = script:WaitForChild("Components")
 for _, v in Components:GetDescendants() do
 	if v:IsA("ModuleScript") then
 		require(v)
