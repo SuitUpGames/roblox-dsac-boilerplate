@@ -250,7 +250,7 @@ local tGetInventoryEntriesByName = t.tuple( IsValidInventory, t.string, t.option
 function InventoryHelper.GetInventoryEntriesByName( inventory: {InventoryEntry}, name: string, count: number? ): ( {InventoryEntry} )
     assert( tGetInventoryEntriesByName(inventory, name, count) )
 
-    count = count or 1
+    count = count or math.huge
 
     local sortedEntries: {InventoryEntry} = {}
     for _, data: InventoryEntry in pairs( inventory ) do
