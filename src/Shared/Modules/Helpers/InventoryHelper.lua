@@ -16,8 +16,6 @@
         FUNCTION    InventoryHelper.GetInventoryEntriesByName( inventory: { InventoryEntry }, name: string, count: number? = 1 ) -> ( { InventoryEntry } )
         FUNCTION    InventoryHelper.GetInventoryEntryByName( inventory: { InventoryEntry }, name: string ) -> ( InventoryEntry? )
         FUNCTION    InventoryHelper.GetInventoryEntryByGUID( inventory: { InventoryEntry }, guid: string ) -> ( InventoryEntry? )
-        FUNCTION    InventoryHelper.GetLowestLevelEntry( inventory: { InventoryEntry } ) -> ( InventoryEntry? )
-        FUNCTION    InventoryHelper.GetHighestLevelEntry( inventory: { InventoryEntry } ) -> ( InventoryEntry? )
         FUNCTION    InventoryHelper.GetInventoryEntriesByNameIgnoreGUID( inventory: { InventoryEntry }, ignoreGUID: string, name: string, count: number? = 1 ) -> ( { InventoryEntry } )
         FUNCTION    InventoryHelper.GetInventoryEntriesWithFilter( inventory: { InventoryEntry }, filter: {[string]: any}, count: number) -> ( { InventoryEntry} )
         FUNCTION    InventoryHelper.CountInventoryEntriesWithFilter( inventory: { InventoryEntry }, filter: {[string]: any}, count: number) -> (number)
@@ -219,37 +217,6 @@ function InventoryHelper.GetInventoryEntryWithFilter(inventory, filter): ( Inven
     end
 
     return filteredInventory
-end
-
-local tGetLowestLevelEntry = t.tuple( IsValidInventory )
-function InventoryHelper.GetLowestLevelEntry( inventory: {InventoryEntry} ): ()
-    assert( tGetLowestLevelEntry(inventory) )
-
-    local selectedEntry, selectedLevel
-    for _, entry: InventoryEntry in pairs( inventory ) do
-        local entryLevel: number? = entry.Level
-        if ( entryLevel ) and ( (not selectedEntry) or (selectedLevel > entryLevel) ) then
-            selectedEntry, selectedLevel = entry, entryLevel
-        end
-    end
-
-    return selectedEntry
-end
-
-
-local tGetHighestLevelEntry = t.tuple( IsValidInventory )
-function InventoryHelper.GetHighestLevelEntry( inventory: {InventoryEntry} ): ()
-    assert( tGetHighestLevelEntry(inventory) )
-
-    local selectedEntry, selectedLevel
-    for _, entry: InventoryEntry in pairs( inventory ) do
-        local entryLevel: number? = entry.Level
-        if ( entryLevel ) and ( (not selectedEntry) or (selectedLevel < entryLevel) ) then
-            selectedEntry, selectedLevel = entry, entryLevel
-        end
-    end
-
-    return selectedEntry
 end
 
 
