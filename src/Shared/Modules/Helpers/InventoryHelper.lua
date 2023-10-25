@@ -188,7 +188,7 @@ function InventoryHelper.GetInventoryEntryByName( inventory: {InventoryEntry}, n
 end
 
 local tGetInventoyEntryByFilter = t.tuple( IsValidInventory, t.string)
-function InventoryHelper.GetInventoryEntryWithFilter(inventory, filter): ( InventoryEntry? )
+function InventoryHelper.GetInventoryEntryWithFilter( inventory, filter ): ( InventoryEntry? )
     assert( tGetInventoyEntryByFilter(inventory, filter) ) 
     local filteredInventory = {}
     for _, data: InventoryEntry in pairs( inventory ) do 
