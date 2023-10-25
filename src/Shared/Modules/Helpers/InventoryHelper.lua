@@ -111,18 +111,6 @@ function InventoryHelper.CountInventoryEntriesByName( inventory: {InventoryEntry
     return count
 end
 
-function InventoryHelper.GetRandomEquippedPetEntry(inventory: {InventoryEntry}, petHaveWant)
-    local petEntries = {}
-    for guid,data in pairs(inventory) do
-        if not table.find(petHaveWant,guid) then
-            table.insert(petEntries,guid)
-        end
-    end
-    local randomPetEntryNumber = (#petEntries == 1 and 1) or (math.random(1,#petEntries))
-    local petEntryGUID = petEntries[randomPetEntryNumber]
-    return petEntryGUID
-end
-
 function InventoryHelper.CountInventoryEntriesWithFilter( inventory: {InventoryEntry}, filter: {}, count: number? )
     local entriesCount: number = 0
     
