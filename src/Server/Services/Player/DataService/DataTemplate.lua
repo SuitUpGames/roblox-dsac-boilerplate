@@ -1,39 +1,7 @@
-local BUILD_VERSION: number = 1007
-
--- local Knit = require(game.ReplicatedStorage.Packages.Knit)
--- local InventoryHelper = require(Knit.Helpers.InventoryHelper)
--- local PetHelper = require(Knit.Helpers.PetHelper)
+local BUILD_VERSION: number = game.ReplicatedStorage.GameVersion.Value
 
 local data = {
-	UnlockedStages = {
-		"Downtown",
-		"Park",
-		"Farm"
-	},
-	AvailableStages = {
-		"Downtown",
-	},
-	CurrentRegion = "Downtown",
-	Coins = 0,
-	Pets = {},
-	Pods = {},
-	Quests = {},
-	MaxEquip = 5,
-	PityRolls = {},
-	LoginTimes = 0,
-	RedeeemdCodes = {},
 	build = BUILD_VERSION,
-	TutorialComplete = false,
-	AvatarAccessories = {
-		["FaceAccessory"] = {},
-		["HatAccessory"] = {},
-		["NeckAccessory"] = {},
-		["BackAccessory"] = {},
-		["MouthAccessory"] = {},
-		["HeadAccessory"] = {},
-	},
-	Challenges = {},
-	Achievements = {},
 }
 
 local function GetPlayerDataTemplate()
