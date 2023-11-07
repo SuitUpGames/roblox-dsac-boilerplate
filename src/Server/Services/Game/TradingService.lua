@@ -224,26 +224,6 @@ function TradingService:KnitStart(): ()
     self.Client.EntryBatchAddedToTrade:Connect(OnEntryBatchAddedToTrade)
     self.Client.EntryRemovedFromTrade:Connect(OnEntryRemovedFromTrade)
     self.Client.EntryBatchRemovedFromTrade:Connect(OnEntryBatchRemovedFromTrade)
-
-    task.spawn(function()
-        repeat task.wait() until #game.Players:GetPlayers() >= 2 
-        local players = game.Players:GetPlayers()
-        local player1Data = self.DataService:GetPlayerDataAsync(players[1]).Data
-        local player2Data = self.DataService:GetPlayerDataAsync(players[2]).Data
-        local _, entry1 = InventoryHelper.AddToInventory(player1Data.Inventory, {
-            Weapon = "Knife";
-            Level = 10;
-        })
-        local _, entry2 = InventoryHelper.AddToInventory(player2Data.Inventory, {
-            Weapon = "Broadsword";
-            Level = 5;
-        })
-        self:CreateNewTrade(players[1], players[2])
-        self:AddEntryToTrade(players[1], entry1.GUID, "Inventory")
-        self:AcceptTrade(players[1])
-        self:AcceptTrade(players[2])
-        print(player1Data, player2Data)
-    end)
 end
 
 
