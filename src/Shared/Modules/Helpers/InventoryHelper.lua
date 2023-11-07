@@ -40,7 +40,7 @@ local IS_SERVER = game:GetService( "RunService" ):IsServer()
 local Packages = game.ReplicatedStorage:WaitForChild("Packages")
 local Knit = require( Packages:WaitForChild("Knit") )
 local t = require( Packages.t )
-local CallbackQueue = require( Packages.CallbackQueue )
+local CallbackQueue = require( Knit.SharedModules.Util.CallbackQueue )
 
 -- Roblox Services
 local HttpService = game:GetService( "HttpService" )
