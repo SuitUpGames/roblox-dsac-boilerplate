@@ -1,6 +1,6 @@
 --[[
 BrainTrackService/init.lua
-Author : James (steelheart2022)
+Author : James (stinkoDad20x6)
 Description : send tracked data to our braintracking on xpop in a good format.
 track chat, friends, serverstats, player add and remove
 
@@ -21,23 +21,24 @@ local BrainTrackSettings = config.BrainTrackSettings
 local knit = require(ReplicatedStorage.Packages.Knit)
 
 local baseUrl = "https://xpop.poptropica.com/brain/track.php"
-local brainTrackService = knit.CreateService({
+local BrainTrackService = knit.CreateService({
 	Name = "BrainTrackService",
 	Client = {},
 	start_time = os.time(),
+	BrainTrackSummaryEvent = {},
 })
 
-brainTrackService.cache = {}
-brainTrackService.cache_expiration = BrainTrackSettings.cache_expiration or 45
+BrainTrackService.cache = {}
+BrainTrackService.cache_expiration = BrainTrackSettings.cache_expiration or 45
 
-local function getCountry(player: Player)
+function getCountry(player)
 	local success, code = pcall(function()
 		return LocalizationService:GetCountryRegionForPlayerAsync(player)
 	end)
 	return success and code or "NA"
 end
 
-local function iterPageItems(pages)
+function iterPageItems(pages)
 	return coroutine.wrap(function()
 		local pagenum = 1
 		while true do
@@ -53,13 +54,67 @@ local function iterPageItems(pages)
 	end)
 end
 
-function brainTrackService:track(player, tracking)
-	-- 	print('brainTrackService:track')
-	-- 	print(self.playerPlatform)
-	-- 	print(self.playerPlatform[player])
-	-- 	print(player)
-	-- 	print(tracking)
-	if ("" == game.JobId) and not BrainTrackSettings.track_on_local and not BrainTrackSettings.debug then
+function player_name(player)
+	if type(player) == "string" then
+		return player
+	end
+	if player:IsA("Player") then
+		return player.Name
+	end
+	warn("Unhanded variable type passed to player_name()", player, type(player))
+	local success, result = pcall(function()
+		return player.Name
+	end)
+	if success then
+		return result
+	end
+	local success, result = pcall(function()
+		return player .. ""
+	end)
+	if success then
+		return result
+	end
+	return "unknownPlayer"
+end
+
+function BrainTrackService:SetSummaryEvent(player, event_name, data)
+	local player_name = player_name(player)
+	if not self.BrainTrackSummaryEvent[player_name] then
+		self.BrainTrackSummaryEvent[player_name] = {}
+	end
+	self.BrainTrackSummaryEvent[player_name][event_name] = data
+end
+
+function BrainTrackService:GetSummaryEvent(player, event_name)
+	local player_name = player_name(player)
+	if not self.BrainTrackSummaryEvent[player_name] then
+		warn("GetSummaryEvent player_folder not found for ", player_name)
+		return nil
+	end
+	return self.BrainTrackSummaryEvent[player_name][event_name]
+end
+
+function BrainTrackService:TrackAndCleanSummaryEvents(player)
+	local player_name = player_name(player)
+	if self.BrainTrackSummaryEvent[player_name] then
+		for k, v in self.BrainTrackSummaryEvent[player_name] do
+			local tracking = { event = k, choice = v }
+			if "table" == type(v) then
+				for k2, v2 in v do
+					tracking[k2] = v2
+				end
+			end
+			self:track(player, tracking)
+			if BrainTrackSettings.debug then
+				print("track and delete", k, v)
+			end
+		end
+		self.BrainTrackSummaryEvent[player_name] = nil
+	end
+end
+
+function BrainTrackService:track(player, tracking)
+	if (game:GetService("RunService"):IsStudio()) and not BrainTrackSettings.track_on_local and not BrainTrackSettings.debug then
 		return
 	end
 
@@ -108,13 +163,13 @@ function brainTrackService:track(player, tracking)
 		-- cache hit
 
 		if
-			brainTrackService.cache[key]
-			and (brainTrackService.cache_expiration > os.difftime(now, brainTrackService.cache[key]))
+			BrainTrackService.cache[key]
+			and (BrainTrackService.cache_expiration > os.difftime(now, BrainTrackService.cache[key]))
 		then
-		--print('limiting to 1 per ' .. brainTrackService.cache_expiration .. ' seconds. too many tracks on ' .. key)
-		-- 		    print(brainTrackService.cache)
+		--print('limiting to 1 per ' .. BrainTrackService.cache_expiration .. ' seconds. too many tracks on ' .. key)
+		-- 		    print(BrainTrackService.cache)
 		else
-			brainTrackService.cache[key] = now
+			BrainTrackService.cache[key] = now
 				data = data:sub(2) -- Remove the first &
 				local url = baseUrl .. "?" .. data
 
@@ -134,29 +189,34 @@ function brainTrackService:track(player, tracking)
 					--print(response)
 				end)
 				if not success then
-					print(error)
+					if (game:GetService("RunService"):IsStudio()) then
+						print(error)
+					else
+						warn("ERROR sending brainTracking event", error)
+					end
 				end
 			end
 	end)
 end
 
-function brainTrackService.Client:track(player, tracking)
-	--     print("brainTrackService.Client:track(player, tracking)")
-	--     print(player)
-	--     print(tracking)
+function BrainTrackService.Client:track(player, tracking)
 	return self.Server:track(player, tracking)
 end
 
-function brainTrackService.Client:setPlayerPlatform(player, IsTenFootInterface, TouchEnabled, MouseEnabled)
+function BrainTrackService.Client:SetSummaryEvent(player, event_name, data)
+	return self.Server:SetSummaryEvent(player, event_name, data)
+end
+
+function BrainTrackService.Client:GetSummaryEvent(player, event_name)
+	return self.Server:GetSummaryEvent(player, event_name)
+end
+
+function BrainTrackService.Client:setPlayerPlatform(player, IsTenFootInterface, TouchEnabled, MouseEnabled)
 	self.Server:track(player, {
 		event = "setPlayerPlatform",
 		choice = HttpService:JSONEncode({ itfi = IsTenFootInterface, te = TouchEnabled, me = MouseEnabled }),
 	})
-	-- 	print('brainTrackService.Client:setPlayerPlatform')
-	-- 	print(player)
-	-- 	print(IsTenFootInterface)
-	-- 	print(TouchEnabled)
-	-- 	print(MouseEnabled)
+
 
 	if IsTenFootInterface then
 		self.Server.playerPlatform[player] = "console"
@@ -167,18 +227,22 @@ function brainTrackService.Client:setPlayerPlatform(player, IsTenFootInterface, 
 	end
 end
 
-function brainTrackService:KnitInit()
+function BrainTrackService:KnitInit()
 	self.playerPlatform = {}
 end
 
-function brainTrackService:KnitStart()
+function BrainTrackService:KnitStart()
+	if ("YOUR GAME" == BrainTrackSettings.campaign) then
+		warn("Please update campaign src/Server/Services/Analytics/BrainTrackService/config.lua to a unique human readable key")
+		BrainTrackSettings.campaign = game.PlaceId
+	end
 
-	game.Players.PlayerMembershipChanged:Connect(function(player: Player)
+	game.Players.PlayerMembershipChanged:Connect(function(player)
 		self:track(player, { event = "PlayerMembershipChanged", choice = player.MembershipType })
 	end)
 
 	-- track when come, go and die
-	game.Players.PlayerAdded:Connect(function(player: Player)
+	game.Players.PlayerAdded:Connect(function(player)
 		self:track(player, {
 			event = "PlayerAdded",
 			choice = HttpService:JSONEncode({
@@ -187,6 +251,7 @@ function brainTrackService:KnitStart()
 				MembershipType = player.MembershipType.Name,
 			}),
 		})
+		self:SetSummaryEvent(player, "TotalTime", os.time())
 
 		player.CharacterAdded:Connect(function(character)
 			character.Humanoid.Died:Connect(function()
@@ -221,9 +286,6 @@ function brainTrackService:KnitStart()
 					countOnGame = countOnGame + 1
 				end
 
-				--             print('has friend')
-				--             print(item)
-				--             self:track(player, {event = 'HasFriend', choice=HttpService:JSONEncode(item)})
 			end
 			self:track(player, {
 				event = "FriendSummary",
@@ -239,18 +301,18 @@ function brainTrackService:KnitStart()
 			self:track(player, { event = "FriendSummary set up fail", message = response })
 		end
 	end)
-	game.Players.PlayerRemoving:Connect(function(player: Player)
+	game.Players.PlayerRemoving:Connect(function(player)
 	    self:track(player, { event = "PlayerRemoving" })
+		local player_start_time = self:GetSummaryEvent(player, "TotalTime")
+		self:SetSummaryEvent(player, "TotalTime", os.time() - player_start_time)
+		self:TrackAndCleanSummaryEvents(player)
 	end)
 
 	game:GetService("ScriptContext").Error:Connect(function(message, trace, script)
-		--         print(script:GetFullName().." errored!")
-		--         print("Reason: "..message)
-		--         print("Trace: "..trace)
 		self:track(nil, { event = "error", choice = trace, subchoice = message, scene = script:GetFullName() })
 	end)
 
-	spawn(function()
+	task.spawn(function()
 		while true do
 			local Stats = game:GetService("Stats")
 			local mem = Stats:GetTotalMemoryUsageMb()
@@ -272,9 +334,9 @@ function brainTrackService:KnitStart()
 				subchoice = "mem:" .. mem,
 				scene = os.time(),
 			})
-			wait(50)
+			task.wait(50)
 		end
 	end)
 end
 
-return brainTrackService
+return BrainTrackService
