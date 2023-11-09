@@ -40,6 +40,7 @@ local HttpService = game:GetService("HttpService")
 ---------------------------------------------------------------------
 
 
+-- Creates trading service
 local TradingService = Knit.CreateService {
     Name = "TradingService";
     Client = {
@@ -57,6 +58,8 @@ local TradingService = Knit.CreateService {
     playersInTrade = {};
 }
 
+
+-- Creates new trade entry
 local function CreateTradeEntry( tradeId: string, otherPlayer: Player ): PlayerTrade
     return {
         accepted = false;
@@ -66,6 +69,8 @@ local function CreateTradeEntry( tradeId: string, otherPlayer: Player ): PlayerT
     }
 end
 
+
+-- Checks if player is trading
 function TradingService:IsPlayerInTrade( player: Player ): boolean 
     if( self.playersInTrade[player.UserId] ) then 
         return true
@@ -74,6 +79,8 @@ function TradingService:IsPlayerInTrade( player: Player ): boolean
     return false
 end
 
+
+-- Creates new trading transaction
 function TradingService:CreateNewTrade( player1: Player, player2: Player ): string
     if( self:IsPlayerInTrade(player1) or self:IsPlayerInTrade(player2) ) then 
         -- Can't open a new trade if one of the players is in an active trade.
@@ -91,6 +98,8 @@ function TradingService:CreateNewTrade( player1: Player, player2: Player ): stri
     return tradeId
 end
 
+
+-- Adds specific entry to trade
 function TradingService:AddEntryToTrade( player: Player, entryId: string, entryType: string ): ()
     local tradeEntry = self.playersInTrade[ player.UserId ]
     if( not tradeEntry ) then
@@ -108,12 +117,16 @@ function TradingService:AddEntryToTrade( player: Player, entryId: string, entryT
     end
 end
 
+
+-- Adds batch of entries to trade
 function TradingService:AddBatchToTrade( player: Player, entrys: {TradeEntry} ): ()
     for _, entry: string in pairs( entrys ) do
         self:AddEntryToTrade(player, entry.ID, entry.InventoryType)
     end
 end
 
+
+-- Removes entry from trade
 function TradingService:RemoveEntryFromTrade( player: Player, entryId: string ): ()
     local tradeEntry = self.playersInTrade[ player.UserId ]
     if( not tradeEntry ) then
@@ -126,12 +139,16 @@ function TradingService:RemoveEntryFromTrade( player: Player, entryId: string ):
     end
 end
 
+
+-- Removes batch of entries from trade
 function TradingService:RemoveBatchFromTrade( player: Player, entryIds: {string} ): ()
     for _, id in pairs( entryIds ) do 
         self:RemoveEntryFromTrade(player, id)
     end
 end
 
+
+-- Executes and completes trade
 function TradingService:CompleteTrade( player1: Player, player2: Player ): boolean
     local tradeEntry1: PlayerTrade = self.playersInTrade[ player1.UserId ]
     local tradeEntry2: PlayerTrade = self.playersInTrade[ player2.UserId ]
@@ -169,6 +186,8 @@ function TradingService:CompleteTrade( player1: Player, player2: Player ): boole
     return true
 end
 
+
+-- Player accepts trade
 function TradingService:AcceptTrade( player: Player ): boolean
     local tradeEntry: PlayerTrade = self.playersInTrade[ player.UserId ]
     local otherEntry = self.playersInTrade[ tradeEntry.otherPlayer.UserId ]
@@ -186,6 +205,8 @@ function TradingService:AcceptTrade( player: Player ): boolean
     return true
 end
 
+
+-- Starts this trading service
 function TradingService:KnitStart(): ()
     
     local function OnRequestTrade( player: Player, requestedName: string ): ()
@@ -227,6 +248,7 @@ function TradingService:KnitStart(): ()
 end
 
 
+-- Sets up DataService
 function TradingService:KnitInit(): ()
     self.DataService = Knit.GetService("DataService")
 end
