@@ -27,6 +27,7 @@ local DataService
 
 ---------------------------------------------------------------------
 
+-- DataController properties
 local DataController = Knit.CreateController {
     Name = "DataController";
     Data = {};
@@ -35,15 +36,21 @@ local DataController = Knit.CreateController {
     InitializationComplete = Signal.new();
 }
 
+
+-- Checks and optionally waits for initialization to complete
 function DataController:WaitForInitialization(): ()
     return self.Initialized or self.InitializationComplete:Wait()
 end
 
+
+-- Gets the player's full dataset (recommend using GetDataByName instead)
 function DataController:GetData()
     repeat task.wait() until self.Initialized
     return self.Data
 end
 
+
+-- Gets a specific value inside of the data
 local tGetDataByName = t.tuple( t.string )
 function DataController:GetDataByName( name: string ): ( any? )
     assert( tGetDataByName(name) )
@@ -52,6 +59,7 @@ function DataController:GetDataByName( name: string ): ( any? )
 end
 
 
+-- Returns the signal that fires when that data gets replicated to the client
 local tGetDataChangedSignal = t.tuple( t.string, t.optional(t.boolean) )
 function DataController:GetDataChangedSignal( name: string, createIfNoExists: boolean? ): ( table )
     assert( tGetDataChangedSignal(name, createIfNoExists) )
@@ -72,6 +80,7 @@ function DataController:GetDataChangedSignal( name: string, createIfNoExists: bo
 end
 
 
+-- Observes when data gets replicated to the client
 local tObserveDataChanged = t.tuple( t.string, t.callback )
 function DataController:ObserveDataChanged( name: string, callback: ()->() ): ()
     assert( tObserveDataChanged(name, callback) )
@@ -84,15 +93,17 @@ function DataController:ObserveDataChanged( name: string, callback: ()->() ): ()
 end
 
 
-function DataController:_recieveDataUpdate( name: string, value: any? ): ( any? )
+-- When player data is received
+function DataController:_receiveDataUpdate( name: string, value: any? ): ( any? )
     local changedSignal = self:GetDataChangedSignal( name, true )
-    --print( "Recieved data update for", name, "| Value:", value )
+    --print( "Received data update for", name, "| Value:", value )
     self.Data[ name ] = value
     changedSignal:Fire( value )
 end
 
 
-function DataController:_recieveTableIndexUpdate( name: string, index: string, value: any? ): ()
+-- When player's table data by index is received
+function DataController:_receiveTableIndexUpdate( name: string, index: string, value: any? ): ()
     local changedSignal = self:GetDataChangedSignal( name, true )
     local findTable: {} = self:GetDataByName( name )
     if ( typeof(findTable) == "table" ) then
@@ -102,6 +113,7 @@ function DataController:_recieveTableIndexUpdate( name: string, index: string, v
 end
 
 
+-- Starts this controller
 function DataController:KnitStart(): ()
     local dataPromise = Promise.new(function( resolve, reject )
         local function GetData()
@@ -118,7 +130,7 @@ function DataController:KnitStart(): ()
         resolve( data )
     end):andThen(function( data )
         for name, value in pairs( data ) do
-            task.spawn( self._recieveDataUpdate, self, name, value )
+            task.spawn( self._receiveDataUpdate, self, name, value )
         end
 
         self.Initialized = true
@@ -127,15 +139,16 @@ function DataController:KnitStart(): ()
 end
 
 
+-- Sets up DataService
 function DataController:KnitInit(): ()
     DataService = Knit.GetService( "DataService" )
 
     DataService.ReplicateData:Connect(function( ... )
-        self:_recieveDataUpdate( ... )
+        self:_receiveDataUpdate( ... )
     end)
 
     DataService.ReplicateTableIndex:Connect(function( ... )
-        self:_recieveTableIndexUpdate( ... )
+        self:_receiveTableIndexUpdate( ... )
     end)
 end
 

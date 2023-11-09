@@ -36,6 +36,7 @@ local ProfileStore = ProfileService.GetProfileStore( STORE_NAME, DataTemplate )
 ---------------------------------------------------------------------
 
 
+-- Creates DataService
 local DataService = Knit.CreateService {
     Name = "DataService";
     Client = {
@@ -48,6 +49,8 @@ local DataService = Knit.CreateService {
 
 local signals: table = {}
 
+
+-- Gets player signal
 local function GetPlayerSignal( player, signalName ): ( {} )
     local playerSignals = if signals[player] then signals[player] else {}
     signals[player] = playerSignals
@@ -56,12 +59,15 @@ local function GetPlayerSignal( player, signalName ): ( {} )
     return signal
 end
 
+
+-- Gets player data
 function DataService.Client:GetPlayerData( player: Player ): ( {}? )
     local profile: {}? = self.Server:GetPlayerDataAsync( player )
     return profile and profile.Data
 end
 
 
+-- Replicates player data by data with the data to replicate (not recommended to use)
 local tReplicatePlayerData = t.tuple( t.instanceIsA("Player"), t.string, t.optional(t.any) )
 function DataService:ReplicatePlayerData( player: Player, name: string, data: any? ): ()
     assert( tReplicatePlayerData(player, name, data) )
@@ -70,6 +76,7 @@ function DataService:ReplicatePlayerData( player: Player, name: string, data: an
 end
 
 
+-- Replicates player's table by the index inside the table
 -- Use this method to only replicate an index within a table
 -- Example: If I had a table called "Trails" and I just changed some data in Trails.Example I would just do
 -- DataService:ReplicateTableIndex( player, "Trails", "Example" )
@@ -88,6 +95,7 @@ function DataService:ReplicateTableIndex( player: Player, name: string, index: s
 end
 
 
+-- Gets player data asynchronously (when it gets loaded)
 local tGetPlayerDataAsync = t.tuple( t.instanceIsA("Player") )
 function DataService:GetPlayerDataAsync( player: Player ): ( {}? )
     assert( tGetPlayerDataAsync(player) )
@@ -99,6 +107,7 @@ function DataService:GetPlayerDataAsync( player: Player ): ( {}? )
 end
 
 
+-- Gets the signal of specific data that gets changed
 local tGetDataChangedSignal = t.tuple( t.string, t.instanceIsA("Player") )
 function DataService:GetDataChangedSignal( signalName: string, player: Player ): ( {} )
     assert( tGetDataChangedSignal(signalName, player) )
@@ -106,6 +115,7 @@ function DataService:GetDataChangedSignal( signalName: string, player: Player ):
 end
 
 
+-- Gets player data via a promise
 local tGetPlayerDataPromise = t.tuple( t.instanceIsA("Player") )
 function DataService:GetPlayerDataPromise( player: Player ): ( {} )
     assert( tGetPlayerDataPromise(player) )
@@ -120,6 +130,8 @@ function DataService:GetPlayerDataPromise( player: Player ): ( {} )
     end)
 end
 
+		
+-- Sets player data based on the name
 local tSetPlayerData = t.tuple( t.instanceIsA("Player"), t.string, t.optional(t.any), t.optional(t.boolean) )
 function DataService:SetPlayerData( player: Player, dataName: string, value: any?, replicateToClient: boolean? ): ()
     assert( tSetPlayerData(player, dataName, value, replicateToClient) )
@@ -139,6 +151,7 @@ function DataService:SetPlayerData( player: Player, dataName: string, value: any
 end
 
 
+-- Increments any numerical data the player has by passed value
 local tIncrementPlayerData = t.tuple( t.instanceIsA("Player"), t.string, t.number, t.optional(t.boolean) )
 function DataService:IncrementPlayerData( player: Player, dataName: string, incrementAmount: number, replicateToClient: boolean? ): ()
     assert( tIncrementPlayerData(player, dataName, incrementAmount, replicateToClient) )
@@ -160,6 +173,8 @@ function DataService:IncrementPlayerData( player: Player, dataName: string, incr
     end
 end
 
+				
+-- Starts this service
 function DataService:KnitStart(): ()
 
     local function OnPlayerAdded( player: Player): ()
@@ -220,6 +235,7 @@ function DataService:KnitStart(): ()
 end
 
 
+-- Sets up this service
 function DataService:KnitInit(): ()
     
 end
