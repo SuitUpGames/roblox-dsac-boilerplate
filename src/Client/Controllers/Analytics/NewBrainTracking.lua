@@ -55,6 +55,30 @@ function NewBrainTrackingController:_positionToBase64Key(Position: Vector3): tab
 end
 
 --[=[
+    Convert table to a string (Better than json)
+    @param totalSummary table -- The total_summary table
+    @return string -- Returns an abbreviated table as a string
+]=]
+function NewBrainTrackingController:_abbreviateTable(totalSummary: table): string
+	local ResultString = ""
+	local SortingArray = {}
+
+	for k, v in totalSummary do
+		SortingArray[#SortingArray + 1] = { k = k, v = v }
+	end
+
+	table.sort(SortingArray, function(a, b)
+		return a.v > b.v
+	end)
+
+	for k, v in SortingArray do
+		ResultString = ResultString .. v.k .. "=" .. v.v .. ","
+	end
+    
+	return ResultString
+end
+
+--[=[
     Initialize NewBrainTrackingController
     @return nil
 ]=]
