@@ -4,14 +4,16 @@
 	Description : track keepAlive with position and some player stats.
 ]=]
 
-local Players = game:GetService("Players")
 local Knit = require(game:GetService("ReplicatedStorage").Packages.Knit)
 local LocalPlayer = Players.LocalPlayer
 local DataController
 
+local Players = game:GetService("Players")
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local HttpService = game:GetService("HttpService")
 
 local BrainTrackController = Knit.CreateController({
-    Name = "BrainTrackController",
+	Name = "BrainTrackController",
 })
 
 --generate probably unique key based upon location
@@ -46,45 +48,47 @@ function AbbrTable(Table)
 end
 
 function BrainTrackController:KnitInit()
-    local BrainTrackService = Knit.GetService("BrainTrackService")
-    DataController = Knit.GetController("DataController")
-    task.spawn(function()
-        while true do
-            task.wait(50)
+	local BrainTrackService = Knit.GetService("BrainTrackService")
+	DataController = Knit.GetController("DataController")
+	task.spawn(function()
+		while true do
+			task.wait(50)
 			local success, response = pcall(function()
-            local PlayerName = game.Players.LocalPlayer.Name
-            local Position = game.Players:waitForChild(PlayerName).Character.HumanoidRootPart.Position
-            local choice = "NoData"
-            if (DataController and DataController.Data) then
-                --todo prioritize data and shorten
-                choice = DataController.Data
-            end
-            BrainTrackService:track( {event = 'keepAlive',
-              choice=choice,
-              subchoice= math.floor(Position.X * 10) ..','.. math.floor(Position.Y * 10) ..','.. math.floor(Position.Z * 10)
-            })
+				local PlayerName = game.Players.LocalPlayer.Name
+				local Position = game.Players:waitForChild(PlayerName).Character.HumanoidRootPart.Position
+				local choice = "NoData"
+				if DataController and DataController.Data then
+					--todo prioritize data and shorten
+					choice = DataController.Data
+				end
+				BrainTrackService:track({
+					event = "keepAlive",
+					choice = choice,
+					subchoice = math.floor(Position.X * 10) .. "," .. math.floor(Position.Y * 10) .. "," .. math.floor(
+						Position.Z * 10
+					),
+				})
 			end)
 			if not success then
-				BrainTrackService:track( {event = 'keepAlive'})
+				BrainTrackService:track({ event = "keepAlive" })
 				warn("braintrack fails on  keepAlive. Please rewrite player position data and/or DataController")
 			end
-        end
-    end)
-
-    task.spawn(function()
-        local HttpService = game:GetService("HttpService")
-        local teleportData = game:GetService("ReplicatedFirst"):WaitForChild('Client'):WaitForChild('teleportData',10)
-        if (nil ~= teleportData) then
-            BrainTrackService:track({
-                event = "LPArrivedTeleport",
-                choice = HttpService:JSONEncode(teleportData or "no data"),
-                scene = "fromBT",
-            })
-        end
-    end)
+		end
+	end)
 
 	task.spawn(function()
-		local logo_assets = {  }
+		local teleportData = ReplicatedFirst:WaitForChild("Client"):WaitForChild("teleportData", 10)
+		if nil ~= teleportData then
+			BrainTrackService:track({
+				event = "LPArrivedTeleport",
+				choice = HttpService:JSONEncode(teleportData or "no data"),
+				scene = "fromBT",
+			})
+		end
+	end)
+
+	task.spawn(function()
+		local logo_assets = {}
 		if 0 == #logo_assets then
 			warn("no logos in impression tracking")
 			return
@@ -190,8 +194,6 @@ function BrainTrackController:KnitInit()
 	end)
 end
 
-function BrainTrackController:KnitStart()
-	
-end
+function BrainTrackController:KnitStart() end
 
 return BrainTrackController

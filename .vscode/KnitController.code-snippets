@@ -22,7 +22,7 @@
 			"Date: $CURRENT_MONTH/$CURRENT_DATE/$CURRENT_YEAR"
 			"Project: $WORKSPACE_NAME"
 
-			"\nDescription of the knit controller (And its behavior) goes here"
+			"\nDescription: Knit controller description goes here"
 			"]=]"
 
 			"\n--GetService calls"
