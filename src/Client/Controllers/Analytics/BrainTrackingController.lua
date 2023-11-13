@@ -1,8 +1,8 @@
---[[
-BrainTrackController.lua
-Author : James (stinkoDad20x6)
-Description : track keepAlive with position and some player stats.
-]]
+--[=[
+	@class BrainTrackController
+	Author : James (stinkoDad20x6)
+	Description : track keepAlive with position and some player stats.
+]=]
 
 local Players = game:GetService("Players")
 local Knit = require(game:GetService("ReplicatedStorage").Packages.Knit)
@@ -188,6 +188,10 @@ function BrainTrackController:KnitInit()
 			end)
 		end)
 	end)
+end
+
+function BrainTrackController:KnitStart()
+	
 end
 
 return BrainTrackController
