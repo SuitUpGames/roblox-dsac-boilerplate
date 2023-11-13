@@ -5,17 +5,22 @@
 ]=]
 
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
 local Knit = require(game:GetService("ReplicatedStorage").Packages.Knit)
+
 local LocalPlayer = Players.LocalPlayer
+
+local BrainTrackService
 local DataController
-
-
 local BrainTrackController = Knit.CreateController({
     Name = "BrainTrackController",
 })
 
+local lastReportTime = 0 -- The last time the client reported to the server w/the brain tracking event
+
 --generate probably unique key based upon location
-function PostionToBase64Key(Position)
+function BrainTrackController:_positionToBase64Key(Position)
 	local Base64Chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#"
 	local PositionString = string.format("%0.4i", (Position.X % 10000))
 		.. string.format("%0.4i", (Position.Y % 10000))
@@ -46,8 +51,15 @@ function AbbrTable(Table)
 end
 
 function BrainTrackController:KnitInit()
-    local BrainTrackService = Knit.GetService("BrainTrackService")
+	--Import BrainTrackService and DatController on init
+    BrainTrackService = Knit.GetService("BrainTrackService")
     DataController = Knit.GetController("DataController")
+
+	--Connect to Heartbeat, wait every (X) amount of seconds before sending a new tracking event to the server
+	RunService.Heartbeat:Connect(function(DT: number)
+		lastReportTime += DT
+		if lastReportTime >= 
+	end
     task.spawn(function()
         while true do
             task.wait(50)
@@ -162,7 +174,7 @@ function BrainTrackController:KnitInit()
 										.. math.floor(subPart.Position.y)
 										.. ":"
 										.. math.floor(subPart.Position.z)
-									short_part_id = PostionToBase64Key(subPart.Position)
+									short_part_id = self:_positionToBase64Key(subPart.Position)
 									total_summary[short_part_id] = period + (total_summary[short_part_id] or 0)
 									reseting_summary[part_id] = period + (reseting_summary[part_id] or 0)
 									--print("reseting_summary[part_id]", reseting_summary[part_id])
