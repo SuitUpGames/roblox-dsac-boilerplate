@@ -12,55 +12,54 @@
 	// 	],
 	// 	"description": "Log output to console"
 	// }
-	"KnitController": {
-		"prefix": "knitcontroller",
+	"KnitService": {
+		"prefix": "knitservice",
 		"body": [
 			"--[=["
-			"@class ${TM_FILENAME_BASE}Controller"
-			"@client"
+			"@class ${TM_FILENAME_BASE}Service"
 			"\nAuthor: ${1:Your name}"
 			"Date: $CURRENT_MONTH/$CURRENT_DATE/$CURRENT_YEAR"
 			"Project: $WORKSPACE_NAME"
 
-			"\nDescription of the knit controller (And its behavior) goes here"
+			"\nDescription of the knit service (And its behavior) goes here"
 			"]=]"
 
 			"\n--GetService calls"
-			"local ContextActionService = game:GetService(\"ContextActionService\")"
-			"local GuiService = game:GetService(\"GuiService\")"
 			"local Players = game:GetService(\"Players\")"
 			"local ReplicatedStorage = game:GetService(\"ReplicatedStorage\")"
 			"local RunService = game:GetService(\"RunService\")"
-			"local UserInputService = game:GetService(\"UserInputService\")"
+			"local ServerScriptService = game:GetService(\"ServerScriptService\")"
+			"local ServerStorage = game:GetService(\"ServerStorage\")"
 
 			"\n--Module imports (Require)"
 			"local Knit = require(ReplicatedStorage.Packages.Knit)"
 
-			"\nlocal ${TM_FILENAME_BASE}Controller = Knit.CreateController({"
-			"\tName = \"${TM_FILENAME_BASE}Controller\""
+			"\nlocal ${TM_FILENAME_BASE}Service = Knit.CreateService({"
+			"\tName = \"${TM_FILENAME_BASE}Service\","
+			"\tClient = {}"
 			"})"
 
-			"\nlocal LOCAL_PLAYER: Player = Players.LocalPlayer"
+			"\nlocal PACKAGES: Folder = ReplicatedStorage.Packages"
 
 			"\n--[=["
-			"\tInitialize ${TM_FILENAME_BASE}Controller"
+			"\tInitialize ${TM_FILENAME_BASE}Service"
 			"\t@return nil"
 			"]=]"
 
-			"function ${TM_FILENAME_BASE}Controller:KnitInit(): nil"
+			"function ${TM_FILENAME_BASE}Service:KnitInit(): nil"
 			"\t"
 			"end"
 
 			"\n--[=["
-			"\tStart ${TM_FILENAME_BASE}Controller"
+			"\tStart ${TM_FILENAME_BASE}Service"
 			"\t@return nil"
 			"]=]"
-			"function ${TM_FILENAME_BASE}Controller:KnitStart(): nil"
+			"function ${TM_FILENAME_BASE}Service:KnitStart(): nil"
 			"\t"
 			"end"
 			"\n"
-			"return ${TM_FILENAME_BASE}Controller"
+			"return ${TM_FILENAME_BASE}Service"
 		],
-		"description": "Populates the document w/a boilerplate Knit controller template"
+		"description": "Populates the document w/a boilerplate Knit service template"
 	}
 }
