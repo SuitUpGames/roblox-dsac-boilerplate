@@ -25,6 +25,7 @@ local Signal: table = require(ReplicatedStorage.Packages.Signal)
 local DataController: table = Knit.CreateController({
 	Name = "DataController",
 	_loadedPlayerdata = Signal.new(),
+    _dataUpdatedSignals = {},
 })
 
 local LOCAL_PLAYER: Player = Players.LocalPlayer
@@ -50,6 +51,7 @@ function DataController:GetData(): table
 end
 
 --[=[
+    Returns a promise that resolves with a specific value (Looked up by key) from the playerdata, and rejects if the playerdata was unable to be loaded/the key does not exist
     @client
     @param Key string -- The key that you want to lookup in the player data table
     @return Promise<T> -- Returns a promise that resolves w/the value from the player's data, and rejects if the player's data could not be loaded in time and/or the key does not exist
@@ -68,6 +70,21 @@ function DataController:GetKey(Key: string): table
 	end)
 end
 
+--[=[
+    Returns a signal that fires (With the value) when the Key argument in the playerdata is updated
+    @client
+    @param Key string -- The key that you want to lookup in the player data table
+    @return Signal<T> -- Signal class - is fired w/the value of the key on update
+]=]
+function DataController:GetKeyUpdatedSignal(Key: string): table
+    if self._dataUpdatedSignals[Key] then
+        return self._dataUpdatedSignals[Key]
+    end
+
+    self._dataUpdatedSignals[Key] = Signal.new(string.format("%s_KEY",Key))
+    --TODO: Hook into ReplicaService module
+    return self._dataUpdatedSignals[Key]
+end
 --[=[
     Initialize DataController
     @return nil
