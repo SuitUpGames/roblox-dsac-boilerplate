@@ -198,7 +198,7 @@ end
 --[=[
     Remove a logo part from the list of assets to check for ad visibility
     @private
-    @param LogoPart BasePart -- The logo object to check for decals
+    @param logoPart BasePart -- The logo object to check for decals
     @return nil
 ]=]
 function BrainTrackingController:_untrackPart(logoPart: BasePart): nil
