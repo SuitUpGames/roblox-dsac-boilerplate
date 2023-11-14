@@ -26,7 +26,7 @@ local Replica: table = require(ReplicatedStorage.Packages.replica)
 local DataController: table = Knit.CreateController({
 	Name = "DataController",
 	_loadedPlayerdata = Signal.new(),
-    _dataUpdatedSignals = {},
+	_dataUpdatedSignals = {},
 })
 
 local LOCAL_PLAYER: Player = Players.LocalPlayer
@@ -38,7 +38,7 @@ local LOCAL_PLAYER: Player = Players.LocalPlayer
 ]=]
 local DATA_LOAD_TIMEOUT: number = 10
 
-local Playerdata: table
+local cachedPlayerdata: table
 
 --[=[
     Returns a promise that resolves with the playerdata once successfully loaded for the first time, and rejects if the player's data cannot be retrieved for some reason
@@ -47,7 +47,7 @@ local Playerdata: table
     @return Promise<T> -- Returns a promise that resolves with the playerdata/rejects if unable to get playerdata
 ]=]
 function DataController:GetData(): table
-	return Playerdata and Promise.resolve(Playerdata)
+	return cachedPlayerdata and Promise.resolve(cachedPlayerdata)
 		or Promise.fromEvent(self._loadedPlayerdata):timeout(DATA_LOAD_TIMEOUT, "Timeout")
 end
 
@@ -74,18 +74,48 @@ end
 --[=[
     Returns a signal that fires (With the value) when the Key argument in the playerdata is updated
     @client
-    @param Key string -- The key that you want to lookup in the player data table
-    @return Signal<T> -- Signal class - is fired w/the value of the key on update
+    @yields
+    @param Key string -- The key that you want to lookup in the player data table. Can be a specific path if desired (Eg. "Currencies" to listen to currency changes as a whole or "Currencies.Coins" to listen to all coin changes)
+    @return Promise<T> -- Returns a promise that resolves w/a signal that fires when the specific key is updated, and rejects if the playerdata isn't loaded in-time
 ]=]
 function DataController:GetKeyUpdatedSignal(Key: string): table
-    if self._dataUpdatedSignals[Key] then
-        return self._dataUpdatedSignals[Key]
-    end
+	return Promise.new(function(Resolve, Reject)
+		self:GetData()
+			:andThen(function()
+				if self._dataUpdatedSignals[Key] then
+					return Resolve(self._dataUpdatedSignals[Key]._signal)
+				end
 
-    self._dataUpdatedSignals[Key] = Signal.new(string.format("%s_KEY",Key))
-    --TODO: Hook into ReplicaService module
-    return self._dataUpdatedSignals[Key]
+				self._dataUpdatedSignals[Key] =
+					{ _signal = Signal.new(string.format("%s_KEY", Key)), _replicaConnection = nil }
+
+				self._dataUpdatedSignals[Key]._replicaConnection = Replica:ListenToKeyChanged(
+					Key,
+					function(oldData: any, newData: any)
+						self._dataUpdatedSignals[Key]._signal:Fire(newData)
+					end
+				)
+
+				Resolve(self._dataUpdatedSignals[Key]._signal)
+			end)
+			:catch(Reject)
+	end)
 end
+
+--[=[
+    Removes a data updated connection from the table
+    Warning: Will disconnect all events tied to that key!
+    @client
+    @param Key string -- The key to disconnect - can be a specific path if desired (Eg. "Currencies" to disconnect a signal for "Currencies" or "Currencies.Coins" to disconnect the "Coins" signal)
+    @return nil
+]=]
+function DataController:DisconnectKeyUpdatedSignal(Key: string): nil
+	if self._dataUpdatedSignals[Key] then
+		self._dataUpdatedSignals[Key]._signal:Destroy()
+		self._dataUpdatedSignals[Key]._replicaConnection:Destroy()
+	end
+end
+
 --[=[
     Initialize DataController
     @return nil
