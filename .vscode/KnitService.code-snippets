@@ -32,9 +32,9 @@
 			"local ServerStorage = game:GetService(\"ServerStorage\")"
 
 			"\n--Module imports (Require)"
-			"local Knit = require(ReplicatedStorage.Packages.Knit)"
+			"local Knit: table = require(ReplicatedStorage.Packages.Knit)"
 
-			"\nlocal ${TM_FILENAME_BASE}Service = Knit.CreateService({"
+			"\nlocal ${TM_FILENAME_BASE}Service: table = Knit.CreateService({"
 			"\tName = \"${TM_FILENAME_BASE}Service\","
 			"\tClient = {}"
 			"})"

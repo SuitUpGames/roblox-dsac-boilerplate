@@ -34,9 +34,9 @@
 			"local UserInputService = game:GetService(\"UserInputService\")"
 
 			"\n--Module imports (Require)"
-			"local Knit = require(ReplicatedStorage.Packages.Knit)"
+			"local Knit: table = require(ReplicatedStorage.Packages.Knit)"
 
-			"\nlocal ${TM_FILENAME_BASE}Controller = Knit.CreateController({"
+			"\nlocal ${TM_FILENAME_BASE}Controller: table = Knit.CreateController({"
 			"\tName = \"${TM_FILENAME_BASE}Controller\""
 			"})"
 
