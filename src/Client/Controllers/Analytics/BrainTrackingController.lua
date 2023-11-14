@@ -26,7 +26,7 @@ local Knit: table = require(ReplicatedStorage.Packages.Knit)
 local Promise: table = require(ReplicatedStorage.Packages.Promise)
 local BrainTrackService: table
 local DataController: table
-local BrainTrackingController = Knit.CreateController({
+local BrainTrackingController: table = Knit.CreateController({
 	Name = "BrainTrackingController",
 })
 
