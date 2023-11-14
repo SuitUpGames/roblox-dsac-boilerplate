@@ -21,6 +21,7 @@ local UserInputService = game:GetService("UserInputService")
 local Knit: table = require(ReplicatedStorage.Packages.Knit)
 local Promise: table = require(ReplicatedStorage.Packages.Promise)
 local Signal: table = require(ReplicatedStorage.Packages.Signal)
+local Replica: table = require(ReplicatedStorage.Packages.replica)
 
 local DataController: table = Knit.CreateController({
 	Name = "DataController",
