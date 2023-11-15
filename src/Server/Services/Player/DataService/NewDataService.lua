@@ -27,6 +27,7 @@ local DataService: table = Knit.CreateService({
 	Client = {},
 	_playerdata = {},
 	_playerdataLoaded = Signal.new("PlayerdataLoaded"),
+	_playerdataUnloaded = Signal.new("PlayerdataUnloaded"),
 })
 
 local PACKAGES: Folder = ReplicatedStorage.Packages
@@ -108,8 +109,22 @@ function DataService:_createPlayerdataProfile(Player: Player): table
 			playerProfile:AddUserId(Player.UserId)
 			playerProfile:Reconcile()
 			playerProfile:ListenToRelease(function()
+				if not self._playerdata[Player] then
+					return
+				end
+                
 				self._playerdata[Player] = nil
+				self._playerdataUnloaded:Fire(Player)
 				Player:Kick("Your data was loaded on another server. Please rejoin in a few minutes.")
+			end)
+
+			--Cleanup player data when player is leaving the game
+			Player.AncestryChanged:Connect(function(_: any, newParent: any)
+				if not newParent then
+					self._playerdata[Player]._profile:Release()
+					self._playerdata[Player] = nil
+					self._playerdataUnloaded:Fire(Player)
+				end
 			end)
 
 			Resolve(playerProfile)
@@ -165,7 +180,8 @@ end
 function DataService:KnitInit(): nil
 	local useProductionStore: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
 	--Use a temporary profilestore key if in studio & LOAD_PLAYERDATA_IN_STUDIO is set to false
-	self._profileStore = ProfileService.GetProfileStore(useProductionStore and STORE_NAME or STORE_NAME .. os.time(), DATA_TEMPLATE)
+	self._profileStore =
+		ProfileService.GetProfileStore(useProductionStore and STORE_NAME or STORE_NAME .. os.time(), DATA_TEMPLATE)
 end
 
 --[=[
