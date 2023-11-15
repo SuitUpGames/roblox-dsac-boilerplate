@@ -47,7 +47,7 @@ local cachedPlayerdata: table
     @return Promise<T> -- Returns a promise that resolves with the playerdata/rejects if unable to get playerdata
 ]=]
 function DataController:GetData(): table
-	return cachedPlayerdata and Promise.resolve(cachedPlayerdata)
+	return cachedPlayerdata and Promise.resolve(cachedPlayerdata.Data)
 		or Promise.fromEvent(self._loadedPlayerdata):timeout(DATA_LOAD_TIMEOUT, "Timeout")
 end
 
@@ -89,7 +89,7 @@ function DataController:GetKeyUpdatedSignal(Key: string): table
 				self._dataUpdatedSignals[Key] =
 					{ _signal = Signal.new(string.format("%s_KEY", Key)), _replicaConnection = nil }
 
-				self._dataUpdatedSignals[Key]._replicaConnection = Replica:ListenToKeyChanged(
+				self._dataUpdatedSignals[Key]._replicaConnection = cachedPlayerdata:ListenToKeyChanged(
 					Key,
 					function(oldData: any, newData: any)
 						self._dataUpdatedSignals[Key]._signal:Fire(newData)
@@ -118,9 +118,16 @@ end
 
 --[=[
     Initialize DataController
+	Get the replica of the playerdata from the server, and then set the cachedPlayerdata varaible as the replica
     @return nil
 ]=]
-function DataController:KnitInit(): nil end
+function DataController:KnitInit(): nil
+	Replica.ReplicaOfClassCreated("Playerdata", function(playerdataReplica: table)
+		print("Playerdata set for client")
+		cachedPlayerdata = playerdataReplica
+		self._loadedPlayerdata:Fire(playerdataReplica.Data)
+	end)
+end
 
 --[=[
     Start DataController
