@@ -17,21 +17,21 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 
 --Module imports (Require)
-local Knit: table = require(ReplicatedStorage.Packages.Knit)
-local Signal: table = require(ReplicatedStorage.Packages.Signal)
-local Promise: table = require(ReplicatedStorage.Packages.Promise)
+local PACKAGES: Folder = ReplicatedStorage.Packages
+local Knit: table = require(PACKAGES.Knit)
+local Signal: table = require(PACKAGES.Signal)
+local Promise: table = require(PACKAGES.Promise)
 local ProfileService: table = require(script.ProfileService)
-local Replica: table = require(ReplicatedStorage.Packages.Replica)
+local Replica: table = require(PACKAGES.Replica)
 
 local PlayerdataService: table = Knit.CreateService({
 	Name = "PlayerdataService",
 	Client = {},
 	_playerdata = {},
-	_playerdataLoaded = Signal.new("PlayerdataLoaded"),
-	_playerdataUnloaded = Signal.new("PlayerdataUnloaded"),
+	_playerdataLoaded = Signal.new(),
+	_playerdataUnloaded = Signal.new(),
 })
 
-local PACKAGES: Folder = ReplicatedStorage.Packages
 local DATA_TEMPLATE: table = require(script.DataTemplate)
 
 local IS_STUDIO: boolean = RunService:IsStudio()
@@ -70,7 +70,8 @@ local DATA_LOAD_RETRY_DELAY: number = 10
     Boolean that determines whether player save profiles should be loaded while in a Roblox studio session
     If true, playerdata will load in studio. If false, playerdata will not be loaded in studio
 ]=]
-local LOAD_PLAYERDATA_IN_STUDIO: boolean = true
+local LOAD_PLAYERDATA_IN_STUDIO: boolean = false
+local USE_PRODUCTION_STORE: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
 
 --Client knit functions/methods
 
@@ -96,36 +97,39 @@ function PlayerdataService:_createPlayerdataProfile(Player: Player): table
 	return Promise.new(function(Resolve, Reject)
 		Promise.retryWithDelay(function()
 			return Promise.new(function(resolveData, rejectData)
-				--A randomly generated GUID is used if the player is in studio & LOAD_PLAYERDATA_IN_STUDIO is set to false
-				local useProductionKey: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
-				local dataKey: string = useProductionKey and DATA_PREFIX .. Player.UserId or HttpService:GenerateGUID()
+				local dataKey: string = DATA_PREFIX .. Player.UserId
 
-				local playerProfile = self._profileStore:LoadProfileAsync(dataKey, "ForceLoad")
+				--Use the mock API under the profilestore
+				local playerProfile: table | nil = USE_PRODUCTION_STORE
+						and self._profileStore:LoadProfileAsync(dataKey, "ForceLoad")
+					or self._profileStore.Mock:LoadProfileAsync(dataKey, "ForceLoad")
 
 				if not playerProfile then
 					return rejectData(string.format("Could not load player profile %s", dataKey))
 				end
 
-				print("Profile: ", playerProfile)
-
 				--Attach user ID to profile, reconcile data, and kick player/erase key from self._playerdata if they join another session
 				playerProfile:AddUserId(Player.UserId)
 				playerProfile:Reconcile()
 				playerProfile:ListenToRelease(function()
-					print("Profile released")
 					if not self._playerdata[Player] then
 						return
 					end
 
 					self._playerdata[Player] = nil
+
 					self._playerdataUnloaded:Fire(Player)
+
 					Player:Kick("Your data was loaded on another server. Please rejoin in a few minutes.")
 				end)
 
 				--Cleanup player data when player is leaving the game
 				Player.AncestryChanged:Connect(function(_: any, newParent: any)
 					if not newParent then
-						self._playerdata[Player]._profile:Release()
+						if self._playerdata[Player] and self._playerdata[Player]._profile then
+							self._playerdata[Player]._profile:Release()
+						end
+
 						self._playerdata[Player] = nil
 						self._playerdataUnloaded:Fire(Player)
 					end
@@ -185,10 +189,7 @@ end
     @return nil
 ]=]
 function PlayerdataService:KnitInit(): nil
-	local useProductionStore: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
-	--Use a temporary profilestore key if in studio & LOAD_PLAYERDATA_IN_STUDIO is set to false
-	self._profileStore =
-		ProfileService.GetProfileStore(useProductionStore and STORE_NAME or STORE_NAME .. os.time(), DATA_TEMPLATE)
+	self._profileStore = ProfileService.GetProfileStore(STORE_NAME, DATA_TEMPLATE)
 end
 
 --[=[
