@@ -92,8 +92,8 @@ end
     @return Promise<T> -- A promise that resolves w/a copy of the player's data table if loaded successfully, and rejects if unable to load the player's data
 ]=]
 function PlayerdataService:_createPlayerdataProfile(Player: Player): table
-	return Promise.retry(
-		Promise.new(function(Resolve, Reject)
+	return Promise.retryWithDelay(function()
+		return Promise.new(function(Resolve, Reject)
 			--A randomly generated GUID is used if the player is in studio & LOAD_PLAYERDATA_IN_STUDIO is set to false
 			local useProductionKey: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
 			local dataKey: string = useProductionKey and DATA_PREFIX .. Player.UserId or HttpService:GenerateGUID()
@@ -103,6 +103,8 @@ function PlayerdataService:_createPlayerdataProfile(Player: Player): table
 			if not playerProfile then
 				return Reject(string.format("Could not load player profile %s", dataKey))
 			end
+
+			print("Profile: ", playerProfile)
 
 			--Attach user ID to profile, reconcile data, and kick player/erase key from self._playerdata if they join another session
 			playerProfile:AddUserId(Player.UserId)
@@ -127,16 +129,15 @@ function PlayerdataService:_createPlayerdataProfile(Player: Player): table
 			end)
 
 			Resolve(playerProfile)
-		end),
-		DATA_LOAD_RETRIES,
-		DATA_LOAD_RETRY_DELAY
-	):andThen(function(playerProfile: table)
-		self._playerdata[Player] = {
-			_profile = playerProfile,
-		}
+		end):andThen(function(playerProfile: table)
+			print("Setting player profile ", playerProfile)
+			self._playerdata[Player] = {
+				_profile = playerProfile,
+			}
 
-		self._playerdataLoaded:Fire(Player)
-	end)
+			self._playerdataLoaded:Fire(Player)
+		end)
+	end, DATA_LOAD_RETRIES, DATA_LOAD_RETRY_DELAY)
 end
 
 --[=[
@@ -155,16 +156,17 @@ function PlayerdataService:GetPlayerdata(Player: Player): table
 			--If playerdata is not loaded, create new promise & set the _playerdata[Player] key to the new table once promise is resolved
 			self._playerdata[Player] = {
 				_profilePromise = self:_createPlayerdataProfile(Player)
-					:andThen(function(playerProfile: table)
-						Resolve(playerProfile.Data)
+					:andThen(function()
+
+						Resolve(self._playerdata[Player]._profile.Data)
 					end)
 					:catch(Reject),
 			}
 		else
 			--If playerdata is being loaded, wait for the _profilePromise to resolve/reject, and act accordingly
 			self._playerdata[Player]._profilePromise
-				:andThen(function(playerProfile: table)
-					Resolve(playerProfile.Data)
+				:andThen(function()
+					Resolve(self._playerdata[Player]._profile.Data)
 				end)
 				:catch(Reject)
 		end
