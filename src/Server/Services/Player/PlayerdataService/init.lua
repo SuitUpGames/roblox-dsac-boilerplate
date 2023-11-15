@@ -21,6 +21,7 @@ local Knit: table = require(ReplicatedStorage.Packages.Knit)
 local Signal: table = require(ReplicatedStorage.Packages.Signal)
 local Promise: table = require(ReplicatedStorage.Packages.Promise)
 local ProfileService: table = require(script.ProfileService)
+local Replica: table = require(ReplicatedStorage.Packages.Replica)
 
 local PlayerdataService: table = Knit.CreateService({
 	Name = "PlayerdataService",
@@ -92,52 +93,57 @@ end
     @return Promise<T> -- A promise that resolves w/a copy of the player's data table if loaded successfully, and rejects if unable to load the player's data
 ]=]
 function PlayerdataService:_createPlayerdataProfile(Player: Player): table
-	return Promise.retryWithDelay(function()
-		return Promise.new(function(Resolve, Reject)
-			--A randomly generated GUID is used if the player is in studio & LOAD_PLAYERDATA_IN_STUDIO is set to false
-			local useProductionKey: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
-			local dataKey: string = useProductionKey and DATA_PREFIX .. Player.UserId or HttpService:GenerateGUID()
+	return Promise.new(function(Resolve, Reject)
+		Promise.retryWithDelay(function()
+			return Promise.new(function(resolveData, rejectData)
+				--A randomly generated GUID is used if the player is in studio & LOAD_PLAYERDATA_IN_STUDIO is set to false
+				local useProductionKey: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
+				local dataKey: string = useProductionKey and DATA_PREFIX .. Player.UserId or HttpService:GenerateGUID()
 
-			local playerProfile = self._profileStore:LoadProfileAsync(dataKey, "ForceLoad")
+				local playerProfile = self._profileStore:LoadProfileAsync(dataKey, "ForceLoad")
 
-			if not playerProfile then
-				return Reject(string.format("Could not load player profile %s", dataKey))
-			end
-
-			print("Profile: ", playerProfile)
-
-			--Attach user ID to profile, reconcile data, and kick player/erase key from self._playerdata if they join another session
-			playerProfile:AddUserId(Player.UserId)
-			playerProfile:Reconcile()
-			playerProfile:ListenToRelease(function()
-				if not self._playerdata[Player] then
-					return
+				if not playerProfile then
+					return rejectData(string.format("Could not load player profile %s", dataKey))
 				end
 
-				self._playerdata[Player] = nil
-				self._playerdataUnloaded:Fire(Player)
-				Player:Kick("Your data was loaded on another server. Please rejoin in a few minutes.")
-			end)
+				print("Profile: ", playerProfile)
 
-			--Cleanup player data when player is leaving the game
-			Player.AncestryChanged:Connect(function(_: any, newParent: any)
-				if not newParent then
-					self._playerdata[Player]._profile:Release()
+				--Attach user ID to profile, reconcile data, and kick player/erase key from self._playerdata if they join another session
+				playerProfile:AddUserId(Player.UserId)
+				playerProfile:Reconcile()
+				playerProfile:ListenToRelease(function()
+					if not self._playerdata[Player] then
+						return
+					end
+
 					self._playerdata[Player] = nil
 					self._playerdataUnloaded:Fire(Player)
-				end
+					Player:Kick("Your data was loaded on another server. Please rejoin in a few minutes.")
+				end)
+
+				--Cleanup player data when player is leaving the game
+				Player.AncestryChanged:Connect(function(_: any, newParent: any)
+					if not newParent then
+						self._playerdata[Player]._profile:Release()
+						self._playerdata[Player] = nil
+						self._playerdataUnloaded:Fire(Player)
+					end
+				end)
+
+				self._playerdata[Player] = {
+					_profile = playerProfile,
+				}
+
+				resolveData(playerProfile)
 			end)
-
-			Resolve(playerProfile)
-		end):andThen(function(playerProfile: table)
-			print("Setting player profile ", playerProfile)
-			self._playerdata[Player] = {
-				_profile = playerProfile,
-			}
-
-			self._playerdataLoaded:Fire(Player)
-		end)
-	end, DATA_LOAD_RETRIES, DATA_LOAD_RETRY_DELAY)
+		end, DATA_LOAD_RETRIES, DATA_LOAD_RETRY_DELAY)
+			:andThen(function()
+				Resolve(self._playerdata[Player]._profile.Data)
+			end)
+			:catch(Reject)
+	end):andThen(function()
+		self._playerdataLoaded:Fire(Player)
+	end)
 end
 
 --[=[
@@ -157,7 +163,6 @@ function PlayerdataService:GetPlayerdata(Player: Player): table
 			self._playerdata[Player] = {
 				_profilePromise = self:_createPlayerdataProfile(Player)
 					:andThen(function()
-
 						Resolve(self._playerdata[Player]._profile.Data)
 					end)
 					:catch(Reject),
