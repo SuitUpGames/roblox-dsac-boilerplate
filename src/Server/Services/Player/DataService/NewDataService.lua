@@ -153,7 +153,6 @@ end
     @client
     @return Promise<T> -- A promise that resolves with a table of the player's data if the playerdata exists, and rejects if the playerdata does not exist
 ]=]
-
 function DataService.Client:GetPlayerdata(Player: Player): table
 	return self.Server:GetPlayerdata(Player)
 end
@@ -166,8 +165,7 @@ end
 function DataService:KnitInit(): nil
 	local useProductionStore: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
 	--Use a temporary profilestore key if in studio & LOAD_PLAYERDATA_IN_STUDIO is set to false
-	self._profileStore =
-		ProfileService.GetProfileStore(useProductionStore and STORE_NAME or STORE_NAME .. os.time(), DATA_TEMPLATE)
+	self._profileStore = ProfileService.GetProfileStore(useProductionStore and STORE_NAME or STORE_NAME .. os.time(), DATA_TEMPLATE)
 end
 
 --[=[
