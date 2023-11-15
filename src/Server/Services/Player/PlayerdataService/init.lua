@@ -14,12 +14,8 @@ Description: Rewrite of serverOptimist PlayerdataService module
 type ANY_TABLE = { [any]: any} -- A generic table type that accepts any values
 
 --GetService calls
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local ServerScriptService = game:GetService("ServerScriptService")
-local ServerStorage = game:GetService("ServerStorage")
 
 --Module imports (Require)
 local PACKAGES: any = ReplicatedStorage.Packages
