@@ -10,12 +10,13 @@ Project: roblox-dsac-boilerplate
 Description: Rewrite of serverOptimist PlayerdataService module
 ]=]
 
---Lua types
-type ANY_TABLE = { [any]: any} -- A generic table type that accepts any values
-
 --GetService calls
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+
+--Lua types
+local Types = require(ReplicatedStorage.Shared.Modules.Data.Types)
+type ANY_TABLE = Types.ANY_TABLE -- A generic table type that accepts any values
 
 --Module imports (Require)
 local PACKAGES: any = ReplicatedStorage.Packages
