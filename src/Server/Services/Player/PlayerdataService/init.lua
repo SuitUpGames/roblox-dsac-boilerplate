@@ -1,3 +1,5 @@
+--!strict
+
 --[=[
 @class PlayerdataService
 
@@ -8,6 +10,9 @@ Project: roblox-dsac-boilerplate
 Description: Rewrite of serverOptimist PlayerdataService module
 ]=]
 
+--Lua types
+type ANY_TABLE = { [any]: any} -- A generic table type that accepts any values
+
 --GetService calls
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -17,14 +22,14 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 
 --Module imports (Require)
-local PACKAGES: Folder = ReplicatedStorage.Packages
-local Knit: table = require(PACKAGES.Knit)
-local Signal: table = require(PACKAGES.Signal)
-local Promise: table = require(PACKAGES.Promise)
-local ProfileService: table = require(script.ProfileService)
-local Replica: table = require(PACKAGES.Replica)
+local PACKAGES: any = ReplicatedStorage.Packages
+local Knit: ANY_TABLE = require(PACKAGES.Knit)
+local Signal: ANY_TABLE = require(PACKAGES.Signal)
+local Promise: ANY_TABLE = require(PACKAGES.Promise)
+local ProfileService: ANY_TABLE = require(script.ProfileService)
+local Replica: ANY_TABLE = require(PACKAGES.Replica)
 
-local PlayerdataService: table = Knit.CreateService({
+local PlayerdataService: ANY_TABLE = Knit.CreateService({
 	Name = "PlayerdataService",
 	Client = {},
 	_playerdata = {},
@@ -32,7 +37,7 @@ local PlayerdataService: table = Knit.CreateService({
 	_playerdataUnloaded = Signal.new(),
 })
 
-local DATA_TEMPLATE: table = require(script.DataTemplate)
+local DATA_TEMPLATE: ANY_TABLE = require(script.DataTemplate)
 
 local IS_STUDIO: boolean = RunService:IsStudio()
 
@@ -81,7 +86,7 @@ local USE_PRODUCTION_STORE: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDI
     @client
     @return Promise<T> -- A promise that resolves with a table of the player's data if the playerdata exists, and rejects if the playerdata does not exist
 ]=]
-function PlayerdataService.Client:GetPlayerdata(Player: Player): table
+function PlayerdataService.Client:GetPlayerdata(Player: Player): ANY_TABLE
 	return self.Server:GetPlayerdata(Player)
 end
 
@@ -93,14 +98,14 @@ end
     @private
     @return Promise<T> -- A promise that resolves w/a copy of the player's data table if loaded successfully, and rejects if unable to load the player's data
 ]=]
-function PlayerdataService:_createPlayerdataProfile(Player: Player): table
+function PlayerdataService:_createPlayerdataProfile(Player: Player): ANY_TABLE
 	return Promise.new(function(Resolve, Reject)
 		Promise.retryWithDelay(function()
 			return Promise.new(function(resolveData, rejectData)
 				local dataKey: string = DATA_PREFIX .. Player.UserId
 
 				--Use the mock API under the profilestore
-				local playerProfile: table | nil = USE_PRODUCTION_STORE
+				local playerProfile: ANY_TABLE | nil = USE_PRODUCTION_STORE
 						and self._profileStore:LoadProfileAsync(dataKey, "ForceLoad")
 					or self._profileStore.Mock:LoadProfileAsync(dataKey, "ForceLoad")
 
@@ -157,7 +162,7 @@ end
     @server
     @return Promise<T> -- A promise that resolves with a table of the player's data if the playerdata exists, and rejects if the playerdata does not exist
 ]=]
-function PlayerdataService:GetPlayerdata(Player: Player): table
+function PlayerdataService:GetPlayerdata(Player: Player): ANY_TABLE
 	return Promise.new(function(Resolve, Reject)
 		if self._playerdata[Player] and self._playerdata[Player]._profile then
 			return Resolve(self._playerdata[Player]._profile.Data)
@@ -188,7 +193,7 @@ end
     @server
     @return nil
 ]=]
-function PlayerdataService:KnitInit(): nil
+function PlayerdataService:KnitInit()
 	self._profileStore = ProfileService.GetProfileStore(STORE_NAME, DATA_TEMPLATE)
 end
 
@@ -197,6 +202,6 @@ end
     @server
     @return nil
 ]=]
-function PlayerdataService:KnitStart(): nil end
+function PlayerdataService:KnitStart() end
 
 return PlayerdataService
