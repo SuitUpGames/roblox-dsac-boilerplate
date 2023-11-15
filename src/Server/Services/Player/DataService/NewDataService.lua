@@ -48,12 +48,6 @@ local STORE_NAME: string = "Playerdata"
     The prefix to amend to the key used for saving playerdata (Eg. "Playerdata_123")
 ]=]
 local DATA_PREFIX: string = "playerdata_"
---[=[
-    @prop DATA_LOAD_TIMEOUT number
-    @within DataService
-    The max amount of time to wait for the playerdata to be loaded before rejecting an associated promise
-]=]
-local DATA_LOAD_TIMEOUT: number = 30
 
 --[=[
     @prop DATA_LOAD_RETRIES number
@@ -84,49 +78,89 @@ local LOAD_PLAYERDATA_IN_STUDIO: boolean = true
     @return Promise<T> -- A promise that resolves w/a copy of the player's data table if loaded successfully, and rejects if unable to load the player's data
 ]=]
 function DataService:_createPlayerdataProfile(Player: Player): table
-	return Promise.retry(Promise.new(function(Resolve, Reject)
-        --A randomly generated GUID is used if the player is in studio & LOAD_PLAYERDATA_IN_STUDIO is set to false
-        local useProductionKey: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
-        local dataKey: string = useProductionKey and DATA_PREFIX..Player.UserId or HttpService:GenerateGUID()
+	return Promise.retry(
+		Promise.new(function(Resolve, Reject)
+			--A randomly generated GUID is used if the player is in studio & LOAD_PLAYERDATA_IN_STUDIO is set to false
+			local useProductionKey: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
+			local dataKey: string = useProductionKey and DATA_PREFIX .. Player.UserId or HttpService:GenerateGUID()
 
-        local playerProfile = 
-    end), DATA_LOAD_RETRIES, DATA_LOAD_RETRY_DELAY)
+			local playerProfile = self._profileStore:LoadProfileAsync(dataKey, "ForceLoad")
+
+			if not playerProfile then
+				return Reject(string.format("Could not load player profile %s", dataKey))
+			end
+
+			--Attach user ID to profile, reconcile data, and kick player/erase key from self._playerdata if they join another session
+			playerProfile:AddUserId(Player.UserId)
+			playerProfile:Reconcile()
+			playerProfile:ListenToRelease(function()
+				self._playerdata[Player] = nil
+				Player:Kick("Your data was loaded on another server. Please rejoin in a few minutes.")
+			end)
+
+			Resolve(playerProfile)
+		end),
+		DATA_LOAD_RETRIES,
+		DATA_LOAD_RETRY_DELAY
+	):andThen(function(playerProfile: table)
+		self._playerdata[Player] = {
+			_profile = playerProfile,
+		}
+
+        self._playerdataLoaded:Fire(Player)
+	end)
 end
 
 --[=[
-    Gets a copy of the playerdata (Table)
+    Returns a promise that resolves with a table of the player's data, and rejects if it cannot be retrieved for some reason
+    If the playerdata is not loaded already, :_createPlayerdataProfile(Player: Player) will be called first
     @server
-    @return Promise<T> -- A promise that resolves if the playerdata exists, and rejects if the playerdata does not exist
+    @return Promise<T> -- A promise that resolves with a table of the player's data if the playerdata exists, and rejects if the playerdata does not exist
 ]=]
 function DataService:GetPlayerdata(Player: Player): table
 	return Promise.new(function(Resolve, Reject)
-		if self._playerdata[Player] then
+		if self._playerdata[Player] and self._playerdata[Player]._profile then
 			return Resolve(self._playerdata[Player]._profile.Data)
 		end
 
-		Promise.fromEvent(self._playerdataLoaded, function(loadedPlayer: Player)
-			return Player == loadedPlayer
-		end)
-			:timeout(DATA_LOAD_TIMEOUT, "Timeout")
-			:catch(Reject)
+		--If playerdata is not loaded, create new promise & set the _playerdata[Player] key to the new table once promise is resolved
+		--If playerdata is being loaded, wait for _playerdataLoaded event, and reject promise if it times out
+		if not self._playerdata[Player] then
+			self._playerdata[Player] = {
+				_profilePromise = self:_createPlayerdataProfile(Player)
+					:andThen(function(playerProfile: table)
+						Resolve(playerProfile.Data)
+					end)
+					:catch(Reject),
+			}
+		else
+			Promise.fromEvent(self._playerdataLoaded, function(loadedPlayer: Player) end)
+				:andThen(function()
+					Resolve(self._playerdata[Player]._profile.Data)
+				end)
+				:timeout(DATA_LOAD_RETRIES * DATA_LOAD_RETRY_DELAY, "Timeout")
+				:catch(Reject)
+		end
 	end)
 end
 
 --[=[
     Initialize DataService
+    @server
     @return nil
 ]=]
 function DataService:KnitInit(): nil
-    local useProductionStore: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
-    --Use a temporary profilestore key if in studio & LOAD_PLAYERDATA_IN_STUDIO is set to false
-    self._profileStore = ProfileService.GetProfileStore(useProductionStore and STORE_NAME or STORE_NAME..os.time(), DATA_TEMPLATE)
+	local useProductionStore: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
+	--Use a temporary profilestore key if in studio & LOAD_PLAYERDATA_IN_STUDIO is set to false
+	self._profileStore =
+		ProfileService.GetProfileStore(useProductionStore and STORE_NAME or STORE_NAME .. os.time(), DATA_TEMPLATE)
 end
 
 --[=[
     Start DataService
+    @server
     @return nil
 ]=]
-function DataService:KnitStart(): nil
-end
+function DataService:KnitStart(): nil end
 
 return DataService
