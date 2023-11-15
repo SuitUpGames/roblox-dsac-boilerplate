@@ -71,6 +71,8 @@ local DATA_LOAD_RETRY_DELAY: number = 10
 ]=]
 local LOAD_PLAYERDATA_IN_STUDIO: boolean = true
 
+--Server knit functions/methods
+
 --[=[
     Creates a new playerdata template via profileservice/replicaservice for a player
     @server
@@ -107,7 +109,7 @@ function DataService:_createPlayerdataProfile(Player: Player): table
 			_profile = playerProfile,
 		}
 
-        self._playerdataLoaded:Fire(Player)
+		self._playerdataLoaded:Fire(Player)
 	end)
 end
 
@@ -123,9 +125,8 @@ function DataService:GetPlayerdata(Player: Player): table
 			return Resolve(self._playerdata[Player]._profile.Data)
 		end
 
-		--If playerdata is not loaded, create new promise & set the _playerdata[Player] key to the new table once promise is resolved
-		--If playerdata is being loaded, wait for _playerdataLoaded event, and reject promise if it times out
 		if not self._playerdata[Player] then
+			--If playerdata is not loaded, create new promise & set the _playerdata[Player] key to the new table once promise is resolved
 			self._playerdata[Player] = {
 				_profilePromise = self:_createPlayerdataProfile(Player)
 					:andThen(function(playerProfile: table)
@@ -134,14 +135,27 @@ function DataService:GetPlayerdata(Player: Player): table
 					:catch(Reject),
 			}
 		else
-			Promise.fromEvent(self._playerdataLoaded, function(loadedPlayer: Player) end)
-				:andThen(function()
-					Resolve(self._playerdata[Player]._profile.Data)
+			--If playerdata is being loaded, wait for the _profilePromise to resolve/reject, and act accordingly
+			self._playerdata[Player]._profilePromise
+				:andThen(function(playerProfile: table)
+					Resolve(playerProfile.Data)
 				end)
-				:timeout(DATA_LOAD_RETRIES * DATA_LOAD_RETRY_DELAY, "Timeout")
 				:catch(Reject)
 		end
 	end)
+end
+
+--Client knit functions/methods
+
+--[=[
+    Returns a promise that resolves with a table of the player's data, and rejects if it cannot be retrieved for some reason
+    If the playerdata is not loaded already, :_createPlayerdataProfile(Player: Player) will be called server-side first
+    @client
+    @return Promise<T> -- A promise that resolves with a table of the player's data if the playerdata exists, and rejects if the playerdata does not exist
+]=]
+
+function DataService.Client:GetPlayerdata(Player: Player): table
+	return self.Server:GetPlayerdata(Player)
 end
 
 --[=[
