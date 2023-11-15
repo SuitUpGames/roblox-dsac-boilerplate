@@ -26,7 +26,8 @@ local PlayerService: table = Knit.CreateService({
 local PACKAGES: Folder = ReplicatedStorage.Packages
 
 --[=[
-    Initialize PlayerService
+    Function that is run when a player joins the game
+
     @param Player Player -- The player that joined the game
     @private
     @return nil
@@ -36,6 +37,17 @@ function PlayerService._playerAdded(Player: Player): nil
     local Playerdata = PlayerdataService:GetPlayerdata(Player)
     print(Playerdata:await())
 end
+
+--[=[
+    Function that is run when a player leaves the game
+    @param Player Player -- The player that left the game
+    @private
+    @return nil
+]=]
+function PlayerService._playerRemoving(Player: Player): nil
+    print("Player left the game ", Player)
+end
+
 --[=[
     Initialize PlayerService
     @return nil
@@ -50,6 +62,7 @@ end
 ]=]
 function PlayerService:KnitStart(): nil
     Players.PlayerAdded:Connect(self._playerAdded)
+    Players.PlayerRemoving:Connect(self._playerRemoving)
 
     for _,Player in Players:GetChildren() do
         self._playerAdded(Player)
