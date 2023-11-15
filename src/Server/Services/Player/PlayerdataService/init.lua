@@ -112,6 +112,7 @@ function PlayerdataService:_createPlayerdataProfile(Player: Player): table
 				playerProfile:AddUserId(Player.UserId)
 				playerProfile:Reconcile()
 				playerProfile:ListenToRelease(function()
+					print("Profile released")
 					if not self._playerdata[Player] then
 						return
 					end
