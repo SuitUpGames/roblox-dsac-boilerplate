@@ -16,7 +16,7 @@ local RunService = game:GetService("RunService")
 
 --Lua types
 local Types = require(ReplicatedStorage.Shared.Modules.Data.Types)
-type ANY_TABLE = Types.ANY_TABLE -- A generic table type that accepts any values
+type ANY_TABLE = Types.ANY_TABLE
 
 --Module imports (Require)
 local PACKAGES: any = ReplicatedStorage.Packages
