@@ -34,8 +34,13 @@ local PACKAGES: Folder = ReplicatedStorage.Packages
 ]=]
 function PlayerService._playerAdded(Player: Player): nil
 	print("Player added ", Player)
-	local Playerdata = PlayerdataService:GetPlayerdata(Player)
-	print(Playerdata:await())
+	PlayerdataService:GetPlayerdata(Player)
+		:andThen(function(Data: table)
+			print("Playerdata successfully loaded ", Data)
+		end)
+		:catch(function(Message: any)
+			warn("Could not load playerdata for player ", Player, ": ", Message)
+		end)
 end
 
 --[=[
