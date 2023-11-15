@@ -1,19 +1,19 @@
-local BUILD_VERSION: number = game.ReplicatedStorage.GameVersion.Value
+--[=[
+	@class DataTemplate
 
-local data = {
-	build = BUILD_VERSION,
+	DataTemplate is the table template for what new player/existing player save data should look like (structure-wise)
+]=]
+
+local BUILD_VERSION: number = game.PlaceVersion
+
+--[=[
+	@interface Playerdata
+	@within DataTemplate
+
+	._build string -- The version of the game that this player's data was last saved with
+]=]
+local Playerdata = {
+	_build = BUILD_VERSION,
 }
 
-local function GetPlayerDataTemplate()
-	local formattedData = {}
-	for key, value in data do
-		if type(value) == "function" then
-			formattedData[key] = value()
-		else
-			formattedData[key] = value
-		end
-	end
-	return formattedData
-end
-
-return GetPlayerDataTemplate()
+return Playerdata
