@@ -20,7 +20,7 @@ local Knit: table = require(ReplicatedStorage.Packages.Knit)
 
 local PlayerdataService: table
 local PlayerService: table = Knit.CreateService({
-    Name = "PlayerService"
+	Name = "PlayerService",
 })
 
 local PACKAGES: Folder = ReplicatedStorage.Packages
@@ -33,9 +33,9 @@ local PACKAGES: Folder = ReplicatedStorage.Packages
     @return nil
 ]=]
 function PlayerService._playerAdded(Player: Player): nil
-    print("Player added ", Player)
-    local Playerdata = PlayerdataService:GetPlayerdata(Player)
-    print(Playerdata:await())
+	print("Player added ", Player)
+	local Playerdata = PlayerdataService:GetPlayerdata(Player)
+	print(Playerdata:await())
 end
 
 --[=[
@@ -45,7 +45,7 @@ end
     @return nil
 ]=]
 function PlayerService._playerRemoving(Player: Player): nil
-    print("Player left the game ", Player)
+	print("Player left the game ", Player)
 end
 
 --[=[
@@ -53,7 +53,7 @@ end
     @return nil
 ]=]
 function PlayerService:KnitInit(): nil
-    PlayerdataService = Knit.GetService("PlayerdataService")
+	PlayerdataService = Knit.GetService("PlayerdataService")
 end
 
 --[=[
@@ -61,13 +61,12 @@ end
     @return nil
 ]=]
 function PlayerService:KnitStart(): nil
-    Players.PlayerAdded:Connect(self._playerAdded)
-    Players.PlayerRemoving:Connect(self._playerRemoving)
+	Players.PlayerAdded:Connect(self._playerAdded)
+	Players.PlayerRemoving:Connect(self._playerRemoving)
 
-    for _,Player in Players:GetChildren() do
-        self._playerAdded(Player)
-    end
+	for _, Player in Players:GetChildren() do
+		self._playerAdded(Player)
+	end
 end
-
 
 return PlayerService
