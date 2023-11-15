@@ -71,6 +71,18 @@ local DATA_LOAD_RETRY_DELAY: number = 10
 ]=]
 local LOAD_PLAYERDATA_IN_STUDIO: boolean = true
 
+--Client knit functions/methods
+
+--[=[
+    Returns a promise that resolves with a table of the player's data, and rejects if it cannot be retrieved for some reason
+    If the playerdata is not loaded already, :_createPlayerdataProfile(Player: Player) will be called server-side first
+    @client
+    @return Promise<T> -- A promise that resolves with a table of the player's data if the playerdata exists, and rejects if the playerdata does not exist
+]=]
+function DataService.Client:GetPlayerdata(Player: Player): table
+	return self.Server:GetPlayerdata(Player)
+end
+
 --Server knit functions/methods
 
 --[=[
@@ -143,18 +155,6 @@ function DataService:GetPlayerdata(Player: Player): table
 				:catch(Reject)
 		end
 	end)
-end
-
---Client knit functions/methods
-
---[=[
-    Returns a promise that resolves with a table of the player's data, and rejects if it cannot be retrieved for some reason
-    If the playerdata is not loaded already, :_createPlayerdataProfile(Player: Player) will be called server-side first
-    @client
-    @return Promise<T> -- A promise that resolves with a table of the player's data if the playerdata exists, and rejects if the playerdata does not exist
-]=]
-function DataService.Client:GetPlayerdata(Player: Player): table
-	return self.Server:GetPlayerdata(Player)
 end
 
 --[=[
