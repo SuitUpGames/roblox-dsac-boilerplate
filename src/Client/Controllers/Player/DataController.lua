@@ -91,7 +91,9 @@ function DataController:GetKeyUpdatedSignal(Key: string): table
 
 				self._dataUpdatedSignals[Key]._replicaConnection = cachedPlayerdata:ListenToKeyChanged(
 					Key,
-					function(oldData: any, newData: any)
+					function(newData: any, oldData: any)
+						print("Old data: ", oldData)
+						print("New data: ", newData)
 						self._dataUpdatedSignals[Key]._signal:Fire(newData)
 					end
 				)
@@ -122,10 +124,23 @@ end
     @return nil
 ]=]
 function DataController:KnitInit(): nil
+	print("Data controller init")
 	Replica.ReplicaOfClassCreated("Playerdata", function(playerdataReplica: table)
 		print("Playerdata set for client")
 		cachedPlayerdata = playerdataReplica
 		self._loadedPlayerdata:Fire(playerdataReplica.Data)
+	end)
+
+	self:GetKeyUpdatedSignal("_configuration._build"):andThen(function(S)
+		print("Signal setup")
+		print(S)
+		S:Connect(function(...)
+			print(...)
+		end)
+	end)
+
+	LOCAL_PLAYER.Chatted:Connect(function()
+		print(cachedPlayerdata)
 	end)
 end
 

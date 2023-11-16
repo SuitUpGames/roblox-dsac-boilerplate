@@ -24,7 +24,7 @@ local Knit: ANY_TABLE = require(PACKAGES.Knit)
 local Signal: ANY_TABLE = require(PACKAGES.Signal)
 local Promise: ANY_TABLE = require(PACKAGES.Promise)
 local ProfileService: ANY_TABLE = require(script.ProfileService)
-local Replica: ANY_TABLE = require(PACKAGES.Replica)
+local Replica: ANY_TABLE
 
 local PlayerdataService: ANY_TABLE = Knit.CreateService({
 	Name = "PlayerdataService",
@@ -35,6 +35,8 @@ local PlayerdataService: ANY_TABLE = Knit.CreateService({
 })
 
 local DATA_TEMPLATE: ANY_TABLE = require(script.DataTemplate)
+local PLAYER_TEMPLATE: ANY_TABLE = DATA_TEMPLATE.Playerdata
+local KEYS_TO_IGNORE: ANY_TABLE = DATA_TEMPLATE.KEYS_TO_IGNORE
 
 local IS_STUDIO: boolean = RunService:IsStudio()
 
@@ -139,8 +141,27 @@ function PlayerdataService:_createPlayerdataProfile(Player: Player): ANY_TABLE
 
 				self._playerdata[Player] = {
 					_profile = playerProfile,
+					_playerReplica = nil
 				}
 
+				local initialReplicaData: ANY_TABLE = {}
+
+				for Key,Value in self._playerdata[Player]._profile.Data do
+					if not KEYS_TO_IGNORE[Key] then
+						print("Adding replication key ", Key, Value)
+						initialReplicaData[Key] = Value
+					end
+				end
+
+				self._playerdata[Player]._playerReplica = Replica.new({ClassName="Playerdata",Data=initialReplicaData,Replication={Player}})
+
+				task.delay(5,function()
+					print("Set replication")
+					self._playerdata[Player]._playerReplica:SetValue("_configuration._build", 2)
+					task.wait(5)
+					print("reupdating")
+					self._playerdata[Player]._playerReplica:SetValue("_configuration._build", 2)
+				end)
 				resolveData(playerProfile)
 			end)
 		end, DATA_LOAD_RETRIES, DATA_LOAD_RETRY_DELAY)
@@ -191,7 +212,8 @@ end
     @return nil
 ]=]
 function PlayerdataService:KnitInit()
-	self._profileStore = ProfileService.GetProfileStore(STORE_NAME, DATA_TEMPLATE)
+	Replica = require(PACKAGES.Replica)
+	self._profileStore = ProfileService.GetProfileStore(STORE_NAME, PLAYER_TEMPLATE)
 end
 
 --[=[
