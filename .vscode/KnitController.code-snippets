@@ -33,10 +33,15 @@
 			"local RunService = game:GetService(\"RunService\")"
 			"local UserInputService = game:GetService(\"UserInputService\")"
 
-			"\n--Module imports (Require)"
-			"local Knit: table = require(ReplicatedStorage.Packages.Knit)"
+			"\n--Types"
+			"local Types = require(ReplicatedStorage.Shared.Modules.Data.Types)"
 
-			"\nlocal ${TM_FILENAME_BASE}Controller: table = Knit.CreateController({"
+			"\ntype ANY_TABLE = Types.ANY_TABLE"
+
+			"\n--Module imports (Require)"
+			"local Knit: ANY_TABLE = require(ReplicatedStorage.Packages.Knit)"
+
+			"\nlocal ${TM_FILENAME_BASE}Controller: ANY_TABLE = Knit.CreateController({"
 			"\tName = \"${TM_FILENAME_BASE}Controller\""
 			"})"
 
@@ -44,18 +49,16 @@
 
 			"\n--[=["
 			"\tInitialize ${TM_FILENAME_BASE}Controller"
-			"\t@return nil"
 			"]=]"
 
-			"function ${TM_FILENAME_BASE}Controller:KnitInit(): nil"
+			"function ${TM_FILENAME_BASE}Controller:KnitInit()"
 			"\t"
 			"end"
 
 			"\n--[=["
 			"\tStart ${TM_FILENAME_BASE}Controller"
-			"\t@return nil"
 			"]=]"
-			"function ${TM_FILENAME_BASE}Controller:KnitStart(): nil"
+			"function ${TM_FILENAME_BASE}Controller:KnitStart()"
 			"\t"
 			"end"
 			"\n"
