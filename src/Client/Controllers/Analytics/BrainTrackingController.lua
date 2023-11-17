@@ -11,22 +11,22 @@ Description : track keepAlive with position and some player stats.
 
 --GetService calls
 local CollectionService = game:GetService("CollectionService")
-local ContextActionService = game:GetService("ContextActionService")
-local GuiService = game:GetService("GuiService")
 local HttpService = game:GetService("HttpService")
-local MessagingService = game:GetService("MessagingService")
 local Players = game:GetService("Players")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+
+--Types
+local Types = require(ReplicatedStorage.Shared.Modules.Data.Types)
+type ANY_TABLE = Types.ANY_TABLE
 
 --Module imports (Require)
-local Knit: table = require(ReplicatedStorage.Packages.Knit)
-local Promise: table = require(ReplicatedStorage.Packages.Promise)
-local BrainTrackService: table
-local DataController: table
-local BrainTrackingController: table = Knit.CreateController({
+local Knit: ANY_TABLE = require(ReplicatedStorage.Packages.Knit)
+local Promise: ANY_TABLE = require(ReplicatedStorage.Packages.Promise)
+local BrainTrackService: ANY_TABLE
+local DataController: ANY_TABLE
+local BrainTrackingController: ANY_TABLE = Knit.CreateController({
 	Name = "BrainTrackingController",
 })
 
@@ -45,7 +45,6 @@ local AD_IMPRESSSION_STUD_RANGE: number = 100 -- How close the player needs to b
 ]=]
 local AD_IMPRESSION_REPORT_THRESHOLD: number = 10 -- How many impressions to show for a part before sending to the server
 local LOCAL_PLAYER: Player = Players.LocalPlayer
-local PLAYER_NAME: string = LOCAL_PLAYER.Name
 local BASE_64_CHARS: string = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#"
 --[=[
     @prop POSITION_REPORTING_TIME number
@@ -67,7 +66,7 @@ local IMPRESSION_REPORTING_TIME: number = 1
     An array of image IDs that should be tracked (Decals/textures should be located under parts tagged with BRAINTRACK_COLLECITONTAG)
     Image IDs can be defined here as strings, or added via BrainTrackingController:AddLogoToTrack(logoTexture: string)
 ]=]
-local LOGO_ASSETS: table = {}
+local LOGO_ASSETS: ANY_TABLE = {}
 --[=[
     @prop BRAINTRACK_COLLECTIONTAG string
     @within BrainTrackingController
@@ -75,9 +74,9 @@ local LOGO_ASSETS: table = {}
 ]=]
 local BRAINTRACK_COLLECTIONTAG: string = "ImpressionPart"
 
-local impressionParts: table = {}
-local rollingAdImpressions: table = {}
-local totalAdImpressions: table = {}
+local impressionParts: ANY_TABLE = {}
+local rollingAdImpressions: ANY_TABLE = {}
+local totalAdImpressions: ANY_TABLE = {}
 
 --[=[
     Generate a unique key based upon location
@@ -85,7 +84,7 @@ local totalAdImpressions: table = {}
     @param Position vector3 -- The input position to convert to a Base64 string
     @return Promise<T> -- Returns a promise that resolves w/a Base64 string
 ]=]
-function BrainTrackingController:_positionToBase64Key(Position: Vector3): table
+function BrainTrackingController:_positionToBase64Key(Position: Vector3): ANY_TABLE
 	return Promise.new(function(Resolve, Reject)
 		local PositionString = table.concat({
 			string.format("%0.4i", (Position.X % 10000)),
@@ -111,7 +110,7 @@ end
     @param totalSummary table -- The total_summary table
     @return string -- Returns an abbreviated table as a string
 ]=]
-function BrainTrackingController:_abbreviateTable(totalSummary: table): string
+function BrainTrackingController:_abbreviateTable(totalSummary: ANY_TABLE): string
 	local ResultString = ""
 	local SortingArray = {}
 
@@ -136,7 +135,7 @@ end
     @param logoPart BasePart -- The logo object to check for decals
     @return nil
 ]=]
-function BrainTrackingController:_trackPart(logoPart: BasePart): nil
+function BrainTrackingController:_trackPart(logoPart: BasePart | any): nil
 	if not impressionParts[logoPart] then
 		local impressionData = {
 			_ads = {},
@@ -178,9 +177,9 @@ function BrainTrackingController:_trackPart(logoPart: BasePart): nil
 
 		--Formats as: PartName:X:Y:Z:Parent:ParentParent:ParentParentParent:ParentParentParentParent
 		impressionData._longPartID = (logoPart.Name .. ":%c:%c:%c:%c:%s:%s:%s:%s"):format(
-			math.floor(logoPart.X),
-			math.floor(logoPart.Y),
-			math.floor(logoPart.Z),
+			math.floor(logoPart.Position.X),
+			math.floor(logoPart.Position.Y),
+			math.floor(logoPart.Position.Z),
 			logoPart.Parent.Name,
 			logoPart.Parent.Parent.Name,
 			logoPart.Parent.Parent.Parent and logoPart.Parent.Parent.Parent.Name or "",
@@ -213,15 +212,15 @@ end
     @private
     @return Promise<T> -- Returns a promise that resolves if the position was reported successfully, and rejects if not
 ]=]
-function BrainTrackingController:_reportPlayerPosition(): table
+function BrainTrackingController:_reportPlayerPosition(): ANY_TABLE
 	return Promise.new(function(Resolve, Reject)
 		if not LOCAL_PLAYER.Character or not LOCAL_PLAYER.Character:FindFirstChild("HumanoidRootPart") then
 			return Reject("Character/HumanoidRootPart not found!")
 		end
 
-		Resolve(LOCAL_PLAYER.Character.HumanoidRootPart.Position, DataController and DataController.Data or "NoData")
+		return Resolve(LOCAL_PLAYER.Character.HumanoidRootPart.Position, DataController and DataController.Data or "NoData")
 	end)
-		:andThen(function(Position: Vector3, Data: table | string)
+		:andThen(function(Position: Vector3, Data: ANY_TABLE | string)
 			BrainTrackService:track({
 				event = "keepAlive",
 				choice = Data,
@@ -246,13 +245,13 @@ end
     @private
     @return Promise<T> -- Returns a promise that resolves if ad impressions were successfully reported, and rejects if not
 ]=]
-function BrainTrackingController:_reportImageImpressions(): table
+function BrainTrackingController:_reportImageImpressions(): ANY_TABLE
 	return Promise.new(function(Resolve, Reject)
 		if not LOCAL_PLAYER.Character or not LOCAL_PLAYER.Character:FindFirstChild("HumanoidRootPart") then
 			return Reject("Character/HumanoidRootPart not found!")
 		end
 
-		Resolve(LOCAL_PLAYER.Character.HumanoidRootPart.Position)
+		return Resolve(LOCAL_PLAYER.Character.HumanoidRootPart.Position)
 	end)
 		:andThen(function(Position: Vector3)
 			for _, impressionPart in impressionParts do
@@ -318,6 +317,8 @@ function BrainTrackingController:_refreshAdsList(): nil
 	for _, Object in CollectionService:GetTagged(BRAINTRACK_COLLECTIONTAG) do
 		self:_trackPart(Object)
 	end
+
+	return
 end
 
 --[=[
@@ -334,6 +335,7 @@ function BrainTrackingController:AddLogoToTrack(logoTexture: string): nil
 	table.insert(LOGO_ASSETS, logoTexture)
 
 	self:_refreshAdsList()
+	return
 end
 
 --[=[
@@ -356,6 +358,8 @@ function BrainTrackingController:KnitInit(): nil
 	for _, Object in CollectionService:GetTagged(BRAINTRACK_COLLECTIONTAG) do
 		self:_trackPart(Object)
 	end
+	
+	return
 end
 
 --[=[
@@ -393,6 +397,8 @@ function BrainTrackingController:KnitStart(): nil
 			self:_reportImageImpressions()
 		end
 	end)
+
+	return
 end
 
 return BrainTrackingController
