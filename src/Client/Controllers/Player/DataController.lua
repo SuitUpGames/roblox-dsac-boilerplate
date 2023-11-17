@@ -10,26 +10,24 @@ Description: Player data Knit controller
 ]=]
 
 --GetService calls
-local ContextActionService = game:GetService("ContextActionService")
-local GuiService = game:GetService("GuiService")
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+
+--Types
+local Types = require(ReplicatedStorage.Shared.Modules.Data.Types)
+type ANY_TABLE = Types.ANY_TABLE
+type REPLICA = Types.Replica
 
 --Module imports (Require)
-local Knit: table = require(ReplicatedStorage.Packages.Knit)
-local Promise: table = require(ReplicatedStorage.Packages.Promise)
-local Signal: table = require(ReplicatedStorage.Packages.Signal)
-local Replica: table = require(ReplicatedStorage.Packages.Replica)
+local Knit: ANY_TABLE = require(ReplicatedStorage.Packages.Knit)
+local Promise: ANY_TABLE = require(ReplicatedStorage.Packages.Promise)
+local Signal: ANY_TABLE = require(ReplicatedStorage.Packages.Signal)
+local ReplicaController: ANY_TABLE
 
-local DataController: table = Knit.CreateController({
+local DataController: ANY_TABLE = Knit.CreateController({
 	Name = "DataController",
 	_loadedPlayerdata = Signal.new(),
 	_dataUpdatedSignals = {},
 })
-
-local LOCAL_PLAYER: Player = Players.LocalPlayer
 
 --[=[
     @prop DATA_LOAD_TIMEOUT number
@@ -38,7 +36,7 @@ local LOCAL_PLAYER: Player = Players.LocalPlayer
 ]=]
 local DATA_LOAD_TIMEOUT: number = 10
 
-local cachedPlayerdata: table
+local cachedPlayerdata: ANY_TABLE
 
 --[=[
     Returns a promise that resolves with the playerdata once successfully loaded for the first time, and rejects if the player's data cannot be retrieved for some reason
@@ -46,7 +44,7 @@ local cachedPlayerdata: table
     @yields
     @return Promise<T> -- Returns a promise that resolves with the playerdata/rejects if unable to get playerdata
 ]=]
-function DataController:GetData(): table
+function DataController:GetData(): ANY_TABLE
 	return cachedPlayerdata and Promise.resolve(cachedPlayerdata.Data)
 		or Promise.fromEvent(self._loadedPlayerdata):timeout(DATA_LOAD_TIMEOUT, "Timeout")
 end
@@ -57,10 +55,10 @@ end
     @param Key string -- The key that you want to lookup in the player data table
     @return Promise<T> -- Returns a promise that resolves w/the value from the player's data, and rejects if the player's data could not be loaded in time and/or the key does not exist
 ]=]
-function DataController:GetKey(Key: string): table
+function DataController:GetKey(Key: string): ANY_TABLE
 	return Promise.new(function(Resolve, Reject)
 		self:GetData()
-			:andThen(function(Playerdata: table)
+			:andThen(function(Playerdata: ANY_TABLE)
 				if Playerdata[Key] then
 					Resolve(Playerdata[Key])
 				else
@@ -78,27 +76,25 @@ end
     @param Key string -- The key that you want to lookup in the player data table. Can be a specific path if desired (Eg. "Currencies" to listen to currency changes as a whole or "Currencies.Coins" to listen to all coin changes)
     @return Promise<T> -- Returns a promise that resolves w/a signal that fires when the specific key is updated, and rejects if the playerdata isn't loaded in-time
 ]=]
-function DataController:GetKeyUpdatedSignal(Key: string): table
+function DataController:GetKeyUpdatedSignal(Key: string): ANY_TABLE
 	return Promise.new(function(Resolve, Reject)
 		self:GetData()
 			:andThen(function()
+				--TODO: I believe this can be replaced w/the signals used by ReplicaUtil
 				if self._dataUpdatedSignals[Key] then
 					return Resolve(self._dataUpdatedSignals[Key]._signal)
 				end
 
-				self._dataUpdatedSignals[Key] =
-					{ _signal = Signal.new(string.format("%s_KEY", Key)), _replicaConnection = nil }
+				self._dataUpdatedSignals[Key] = { _signal = Signal.new(), _replicaConnection = nil }
 
 				self._dataUpdatedSignals[Key]._replicaConnection = cachedPlayerdata:ListenToKeyChanged(
 					Key,
 					function(newData: any, oldData: any)
-						print("Old data: ", oldData)
-						print("New data: ", newData)
 						self._dataUpdatedSignals[Key]._signal:Fire(newData)
 					end
 				)
 
-				Resolve(self._dataUpdatedSignals[Key]._signal)
+				return Resolve(self._dataUpdatedSignals[Key]._signal)
 			end)
 			:catch(Reject)
 	end)
@@ -116,6 +112,8 @@ function DataController:DisconnectKeyUpdatedSignal(Key: string): nil
 		self._dataUpdatedSignals[Key]._signal:Destroy()
 		self._dataUpdatedSignals[Key]._replicaConnection:Destroy()
 	end
+
+	return nil
 end
 
 --[=[
@@ -124,24 +122,23 @@ end
     @return nil
 ]=]
 function DataController:KnitInit(): nil
-	print("Data controller init")
-	Replica.ReplicaOfClassCreated("Playerdata", function(playerdataReplica: table)
+	ReplicaController = Knit.GetController("ReplicaController")
+
+	ReplicaController:replicaOfClassCreated("Playerdata", function(playerdataReplica: REPLICA)
 		print("Playerdata set for client")
 		cachedPlayerdata = playerdataReplica
 		self._loadedPlayerdata:Fire(playerdataReplica.Data)
 	end)
 
-	self:GetKeyUpdatedSignal("_configuration._build"):andThen(function(S)
-		print("Signal setup")
-		print(S)
+	--[[
+		Test function: Get the _configuration._build updated key event, and print the output when it's fired
+		self:GetKeyUpdatedSignal("_configuration._build"):andThen(function(S)
 		S:Connect(function(...)
 			print(...)
 		end)
-	end)
+	end)--]]
 
-	LOCAL_PLAYER.Chatted:Connect(function()
-		print(cachedPlayerdata)
-	end)
+	return nil
 end
 
 --[=[

@@ -15,15 +15,15 @@ local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 
+local Types = require(ReplicatedStorage.Shared.Modules.Data.Types)
+type ANY_TABLE = Types.ANY_TABLE
 --Module imports (Require)
-local Knit: table = require(ReplicatedStorage.Packages.Knit)
+local Knit: ANY_TABLE = require(ReplicatedStorage.Packages.Knit)
 
-local PlayerdataService: table
-local PlayerService: table = Knit.CreateService({
+local PlayerdataService: ANY_TABLE
+local PlayerService: ANY_TABLE = Knit.CreateService({
 	Name = "PlayerService",
 })
-
-local PACKAGES: Folder = ReplicatedStorage.Packages
 
 --[=[
     Function that is run when a player joins the game
@@ -35,12 +35,14 @@ local PACKAGES: Folder = ReplicatedStorage.Packages
 function PlayerService._playerAdded(Player: Player): nil
 	print("Player added ", Player)
 	PlayerdataService:GetPlayerdata(Player)
-		:andThen(function(Data: table)
+		:andThen(function(Data: ANY_TABLE)
 			print("Playerdata successfully loaded ", Data)
 		end)
 		:catch(function(Message: any)
 			warn("Could not load playerdata for player ", Player, ": ", Message)
 		end)
+
+		return nil
 end
 
 --[=[
@@ -51,6 +53,7 @@ end
 ]=]
 function PlayerService._playerRemoving(Player: Player): nil
 	print("Player left the game ", Player)
+	return nil
 end
 
 --[=[
@@ -59,6 +62,7 @@ end
 ]=]
 function PlayerService:KnitInit(): nil
 	PlayerdataService = Knit.GetService("PlayerdataService")
+	return nil
 end
 
 --[=[
@@ -72,6 +76,8 @@ function PlayerService:KnitStart(): nil
 	for _, Player in Players:GetChildren() do
 		self._playerAdded(Player)
 	end
+	
+	return nil
 end
 
 return PlayerService

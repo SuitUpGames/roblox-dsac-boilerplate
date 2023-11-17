@@ -1,3 +1,4 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --[[
     Author: @LuaRook
     Created: 8/11/2023
@@ -5,14 +6,16 @@
 
 --[ Dependencies ]--
 
-local Signal = require(script.Parent.Parent.Signal)
-local SharedTypes = require(script.Parent.SharedTypes)
+local Signal = require(ReplicatedStorage.Packages.Signal)
+local Types = require(ReplicatedStorage.Shared.Modules.Data.Types)
+local Promise = require(ReplicatedStorage.Packages.Promise)
 
 --[ Types ]--
 
 type Signal = Signal.Signal
 type Connection = Signal.Connection
-type PathListener = SharedTypes.PathListener
+type PathListener = Types.ReplicaPathListener
+type ReplicaPath = Types.ReplicaPath
 
 --[ Root ]--
 
@@ -24,7 +27,7 @@ local Listeners: { [string]: { [string]: Connection } } = {}
 
 --[ Local Functions ]--
 
-local function stringToArray(str: string): Path
+local function stringToArray(str: string): ReplicaPath
 	return string.split(str, ".")
 end
 

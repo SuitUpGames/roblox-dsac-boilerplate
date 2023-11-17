@@ -24,7 +24,7 @@ local Knit: ANY_TABLE = require(PACKAGES.Knit)
 local Signal: ANY_TABLE = require(PACKAGES.Signal)
 local Promise: ANY_TABLE = require(PACKAGES.Promise)
 local ProfileService: ANY_TABLE = require(script.ProfileService)
-local Replica: ANY_TABLE
+local ReplicaService: ANY_TABLE
 
 local PlayerdataService: ANY_TABLE = Knit.CreateService({
 	Name = "PlayerdataService",
@@ -141,28 +141,34 @@ function PlayerdataService:_createPlayerdataProfile(Player: Player): ANY_TABLE
 
 				self._playerdata[Player] = {
 					_profile = playerProfile,
-					_playerReplica = nil
+					_playerReplica = nil,
 				}
 
 				local initialReplicaData: ANY_TABLE = {}
 
-				for Key,Value in self._playerdata[Player]._profile.Data do
+				for Key, Value in self._playerdata[Player]._profile.Data do
 					if not KEYS_TO_IGNORE[Key] then
-						print("Adding replication key ", Key, Value)
 						initialReplicaData[Key] = Value
 					end
 				end
 
-				self._playerdata[Player]._playerReplica = Replica.new({ClassName="Playerdata",Data=initialReplicaData,Replication={Player}})
+				--Create new replica for playerdata
+				ReplicaService:CreateReplica("Playerdata", { Player }, nil, initialReplicaData)
+					:andThen(function(Replica)
+						self._playerdata[Player]._playerReplica = Replica
+						
+						--[[
+						TODO: With replica functions, check the global KEYS_TO_IGNORE list w/a value that's trying to be set (Should be under the server replica class)
+						
+						task.delay(5, function()
+							print("Set replication")
+							self._playerdata[Player]._playerReplica:SetValue("_configuration._build", 2)
+						end)
+						--]]
 
-				task.delay(5,function()
-					print("Set replication")
-					self._playerdata[Player]._playerReplica:SetValue("_configuration._build", 2)
-					task.wait(5)
-					print("reupdating")
-					self._playerdata[Player]._playerReplica:SetValue("_configuration._build", 2)
-				end)
-				resolveData(playerProfile)
+						resolveData(playerProfile)
+					end)
+					:catch(Reject)
 			end)
 		end, DATA_LOAD_RETRIES, DATA_LOAD_RETRY_DELAY)
 			:andThen(function()
@@ -212,7 +218,7 @@ end
     @return nil
 ]=]
 function PlayerdataService:KnitInit()
-	Replica = require(PACKAGES.Replica)
+	ReplicaService = Knit.GetService("ReplicaService")
 	self._profileStore = ProfileService.GetProfileStore(STORE_NAME, PLAYER_TEMPLATE)
 end
 

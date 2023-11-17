@@ -19,7 +19,6 @@ local BUILD_VERSION: number = game.PlaceVersion
 	An array of strings to ignore w/replication to clients
 ]=]
 local KEYS_TO_IGNORE: ANY_TABLE = {
-	_build=true,
 }
 
 --[=[
@@ -31,9 +30,9 @@ local KEYS_TO_IGNORE: ANY_TABLE = {
 	The default playerdata template for new players
 ]=]
 local Playerdata = {
-	_configuration={
-		_build=BUILD_VERSION
-	}
+	_configuration = {
+		_build = BUILD_VERSION,
+	},
 }
 
-return {Playerdata=Playerdata,KEYS_TO_IGNORE=KEYS_TO_IGNORE}
+return { Playerdata = Playerdata, KEYS_TO_IGNORE = KEYS_TO_IGNORE }
