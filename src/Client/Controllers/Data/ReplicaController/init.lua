@@ -128,13 +128,6 @@ function ReplicaController:replicaOfClassCreated(class: string, callback: any): 
 end
 
 --[=[
-    
-    @param class string -- The class of replica that you want to connect to (Eg. "Playerdata")
-    @param callback function -- A function that will be called when a new [Replica] object of the same class parameter is created - only argument provided is the newly created [Replica] object
-    @return function -- Returns a function that (When called) disconnects the created script connection
-]=]
-
---[=[
     Initialize ReplicaController
 ]=]
 function ReplicaController:KnitInit()

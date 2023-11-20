@@ -117,9 +117,9 @@ function DataController:DisconnectKeyUpdatedSignal(Key: string): nil
 end
 
 --[=[
-    Initialize DataController
+	Initialize DataController
 	Get the replica of the playerdata from the server, and then set the cachedPlayerdata varaible as the replica
-    @return nil
+	@return nil
 ]=]
 function DataController:KnitInit(): nil
 	ReplicaController = Knit.GetController("ReplicaController")
