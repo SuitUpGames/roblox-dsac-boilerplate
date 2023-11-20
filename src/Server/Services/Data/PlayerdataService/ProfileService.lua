@@ -1,3 +1,9 @@
+--[=[
+	@class ProfileService
+	https://madstudioroblox.github.io/ProfileService/
+	@ignore
+]=]
+
 -- local Madwork = _G.Madwork
 --[[
 {Madwork}
