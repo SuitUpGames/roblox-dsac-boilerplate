@@ -41,38 +41,38 @@ local KEYS_TO_IGNORE: ANY_TABLE = DATA_TEMPLATE.KEYS_TO_IGNORE
 local IS_STUDIO: boolean = RunService:IsStudio()
 
 --[=[
-    @prop STORE_NAME string
-    @within PlayerdataService
-    The datastore to use with profileservice for storing playerdata
+	@prop STORE_NAME string
+	@within PlayerdataService
+	The datastore to use with profileservice for storing playerdata
 ]=]
 local STORE_NAME: string = "Playerdata"
 
 --[=[
-    @prop DATA_PREFIX string
-    @within PlayerdataService
-    The prefix to amend to the key used for saving playerdata (Eg. "Playerdata_123")
+	@prop DATA_PREFIX string
+	@within PlayerdataService
+	The prefix to amend to the key used for saving playerdata (Eg. "Playerdata_123")
 ]=]
 local DATA_PREFIX: string = "playerdata_"
 
 --[=[
-    @prop DATA_LOAD_RETRIES number
-    @within PlayerdataService
-    The maximum amount of times to try to load a player's data (On joining the game) before rejecting the promise associated w/it
+	@prop DATA_LOAD_RETRIES number
+	@within PlayerdataService
+	The maximum amount of times to try to load a player's data (On joining the game) before rejecting the promise associated w/it
 ]=]
 local DATA_LOAD_RETRIES: number = 10
 
 --[=[
-    @prop DATA_LOAD_RETRY_DELAY number
-    @within PlayerdataService
-    How long to wait between failed attempts with loading a player's data (On joining the game) before retrying
+	@prop DATA_LOAD_RETRY_DELAY number
+	@within PlayerdataService
+	How long to wait between failed attempts with loading a player's data (On joining the game) before retrying
 ]=]
 local DATA_LOAD_RETRY_DELAY: number = 10
 
 --[=[
-    @prop LOAD_PLAYERDATA_IN_STUDIO boolean
-    @within PlayerdataService
-    Boolean that determines whether player save profiles should be loaded while in a Roblox studio session
-    If true, playerdata will load in studio. If false, playerdata will not be loaded in studio
+	@prop LOAD_PLAYERDATA_IN_STUDIO boolean
+	@within PlayerdataService
+	Boolean that determines whether player save profiles should be loaded while in a Roblox studio session
+	If true, playerdata will load in studio. If false, playerdata will not be loaded in studio
 ]=]
 local LOAD_PLAYERDATA_IN_STUDIO: boolean = false
 local USE_PRODUCTION_STORE: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDIO)
@@ -80,10 +80,11 @@ local USE_PRODUCTION_STORE: boolean = (not IS_STUDIO or LOAD_PLAYERDATA_IN_STUDI
 --Client knit functions/methods
 
 --[=[
-    Returns a promise that resolves with a table of the player's data, and rejects if it cannot be retrieved for some reason
-    If the playerdata is not loaded already, :_createPlayerdataProfile(Player: Player) will be called server-side first
-    @client
-    @return Promise<T> -- A promise that resolves with a table of the player's data if the playerdata exists, and rejects if the playerdata does not exist
+	Returns a promise that resolves with a table of the player's data, and rejects if it cannot be retrieved for some reason
+	If the playerdata is not loaded already, :_createPlayerdataProfile(Player: Player) will be called server-side first
+	@client
+	@within PlayerdataService
+	@return Promise<T> -- A promise that resolves with a table of the player's data if the playerdata exists, and rejects if the playerdata does not exist
 ]=]
 function PlayerdataService.Client:GetPlayerdata(Player: Player): ANY_TABLE
 	return self.Server:GetPlayerdata(Player)
@@ -92,10 +93,10 @@ end
 --Server knit functions/methods
 
 --[=[
-    Creates a new playerdata template via profileservice/replicaservice for a player
-    @server
-    @private
-    @return Promise<T> -- A promise that resolves w/a copy of the player's data table if loaded successfully, and rejects if unable to load the player's data
+	Creates a new playerdata template via profileservice/replicaservice for a player
+	@server
+	@private
+	@return Promise<T> -- A promise that resolves w/a copy of the player's data table if loaded successfully, and rejects if unable to load the player's data
 ]=]
 function PlayerdataService:_createPlayerdataProfile(Player: Player): ANY_TABLE
 	return Promise.new(function(Resolve, Reject)
@@ -171,10 +172,10 @@ function PlayerdataService:_createPlayerdataProfile(Player: Player): ANY_TABLE
 end
 
 --[=[
-    Returns a promise that resolves with a table of the player's data, and rejects if it cannot be retrieved for some reason
-    If the playerdata is not loaded already, :_createPlayerdataProfile(Player: Player) will be called first
-    @server
-    @return Promise<T> -- A promise that resolves with a table of the player's data if the playerdata exists, and rejects if the playerdata does not exist
+	Returns a promise that resolves with a table of the player's data, and rejects if it cannot be retrieved for some reason
+	If the playerdata is not loaded already, :_createPlayerdataProfile(Player: Player) will be called first
+	@server
+	@return Promise<T> -- A promise that resolves with a table of the player's data if the playerdata exists, and rejects if the playerdata does not exist
 ]=]
 function PlayerdataService:GetPlayerdata(Player: Player): ANY_TABLE
 	return Promise.new(function(Resolve, Reject)
@@ -203,9 +204,9 @@ function PlayerdataService:GetPlayerdata(Player: Player): ANY_TABLE
 end
 
 --[=[
-    Initialize PlayerdataService
-    @server
-    @return nil
+	Initialize PlayerdataService
+	@server
+	@return nil
 ]=]
 function PlayerdataService:KnitInit()
 	ReplicaService = Knit.GetService("ReplicaService")
@@ -213,9 +214,9 @@ function PlayerdataService:KnitInit()
 end
 
 --[=[
-    Start PlayerdataService
-    @server
-    @return nil
+	Start PlayerdataService
+	@server
+	@return nil
 ]=]
 function PlayerdataService:KnitStart() end
 

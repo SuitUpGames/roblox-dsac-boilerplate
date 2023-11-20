@@ -18,7 +18,7 @@ export type NPC = {
 	_outfitLoadout: NPCAppearanceLoadout,
 	_generateNPCModel: (self: NPC, outfitLoadout: NPCAppearanceLoadout) -> ANY_TABLE,
 	_currentPath: { Vector2 | Vector3 },
-	_lastPathWaypoint: {number},
+	_lastPathWaypoint: { number },
 	new: (Replica) -> NPC,
 	Destroy: (self: ANY_TABLE) -> (),
 	_trove: ANY_TABLE,
