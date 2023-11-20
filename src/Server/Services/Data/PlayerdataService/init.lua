@@ -5,7 +5,7 @@
 
 Author: serverOptimist & ArtemisTheDeer
 Date: 11/15/2023
-Project: Sparkles
+Project: dasc-boilerplate
 
 Description: Rewrite of serverOptimist PlayerdataService module
 ]=]

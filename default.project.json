@@ -1,5 +1,5 @@
 {
-    "name": "Sparkles",
+    "name": "dasc-boilerplate",
     "tree": {
       "$className": "DataModel",
   
@@ -21,10 +21,6 @@
   
         "Assets": {
           "$className": "Folder"
-        },
-  
-        "GameVersion": {
-          "$path": "src/GameVersion.txt"
         },
 
         "Packages": {

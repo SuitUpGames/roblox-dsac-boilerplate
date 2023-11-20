@@ -4,7 +4,7 @@
 
 Author: ArtemisTheDeer, loleris, luarook
 Date: 11/16/2023
-Project: Sparkles
+Project: dasc-boilerplate
 
 Description: Custom replication controller for stateful values between client and server
 Credit to loleris for using some of the code/ideas from ReplicaService for stateful replication, and luarook for their fork of ReplicaService (That was stripped down of unused functionality)

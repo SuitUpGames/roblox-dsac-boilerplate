@@ -3,7 +3,7 @@
 
 Author: ArtemisTheDeer
 Date: 11/15/2023
-Project: Sparkles
+Project: dasc-boilerplate
 
 Description: Basic boilerplate player service (Manages behavior w/players joining/leaving the game)
 ]=]
