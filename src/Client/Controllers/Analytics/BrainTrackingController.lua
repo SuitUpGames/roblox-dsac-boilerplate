@@ -5,7 +5,7 @@
 Author: James (stinkoDad20x6)
 Refactored by ArtemisTheDeer
 Date: 11/13/2023
-Project: dasc-boilerplate
+Project: Sparkles
 Description : track keepAlive with position and some player stats.
 ]=]
 

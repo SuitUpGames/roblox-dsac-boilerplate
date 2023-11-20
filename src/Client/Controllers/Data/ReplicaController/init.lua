@@ -4,7 +4,7 @@
 
 Author: ArtemisTheDeer, loleris, luarook
 Date: 11/16/2023
-Project: dasc-boilerplate
+Project: Sparkles
 
 Description: Custom replication controller for stateful values between client and server
 Credit to loleris for using some of the code/ideas from ReplicaService for stateful replication, and luarook for their fork of ReplicaService (That was stripped down of unused functionality)
@@ -106,15 +106,15 @@ end
 
 --[=[
     When a new [Replica] object of the 'class' parameter is added, the 'callback' function is called (The provided argument is the new [Replica] object)
-    @param replicaClass string -- The class of replica that you want to connect to (Eg. "Playerdata")
+    @param class string -- The class of replica that you want to connect to (Eg. "Playerdata")
     @param callback function -- A function that will be called when a new [Replica] object of the same class parameter is created - only argument provided is the newly created [Replica] object
     @return function -- Returns a function that (When called) disconnects the created script connection
 ]=]
-function ReplicaController:replicaOfClassCreated(replicaClass: string, callback: any): any
+function ReplicaController:replicaOfClassCreated(class: string, callback: any): any
 	local connection: RBXScriptConnection
 
 	connection = self.replicaAdded:Connect(function(newReplica: REPLICA)
-		if newReplica.ClassName == replicaClass then
+		if newReplica.ClassName == class then
 			Promise.defer(function(Resolve, Reject)
 				callback(newReplica)
 				Resolve()
@@ -126,6 +126,13 @@ function ReplicaController:replicaOfClassCreated(replicaClass: string, callback:
 		connection:Disconnect()
 	end
 end
+
+--[=[
+    
+    @param class string -- The class of replica that you want to connect to (Eg. "Playerdata")
+    @param callback function -- A function that will be called when a new [Replica] object of the same class parameter is created - only argument provided is the newly created [Replica] object
+    @return function -- Returns a function that (When called) disconnects the created script connection
+]=]
 
 --[=[
     Initialize ReplicaController
