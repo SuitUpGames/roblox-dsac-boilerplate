@@ -106,15 +106,15 @@ end
 
 --[=[
     When a new [Replica] object of the 'class' parameter is added, the 'callback' function is called (The provided argument is the new [Replica] object)
-    @param class string -- The class of replica that you want to connect to (Eg. "Playerdata")
+    @param replicaClass string -- The class of replica that you want to connect to (Eg. "Playerdata")
     @param callback function -- A function that will be called when a new [Replica] object of the same class parameter is created - only argument provided is the newly created [Replica] object
     @return function -- Returns a function that (When called) disconnects the created script connection
 ]=]
-function ReplicaController:replicaOfClassCreated(class: string, callback: any): any
+function ReplicaController:replicaOfClassCreated(replicaClass: string, callback: any): any
 	local connection: RBXScriptConnection
 
 	connection = self.replicaAdded:Connect(function(newReplica: REPLICA)
-		if newReplica.ClassName == class then
+		if newReplica.ClassName == replicaClass then
 			Promise.defer(function(Resolve, Reject)
 				callback(newReplica)
 				Resolve()
