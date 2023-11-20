@@ -36,6 +36,7 @@ local CAMERA: Camera = workspace.CurrentCamera
     @within BrainTrackingController
     How close the player needs to be (From an ad impression part) for it to qualify as an impression
 ]=]
+
 local AD_IMPRESSSION_STUD_RANGE: number = 100 -- How close the player needs to be to an ad for it to qualify as an impression
 --[=[
     @prop AD_IMPRESSION_REPORT_THRESHOLD number
@@ -43,6 +44,7 @@ local AD_IMPRESSSION_STUD_RANGE: number = 100 -- How close the player needs to b
     How many impressions a specific ad part needs to have in order to send an impression event to the server
     Eg. AD_IMPRESSION_REPORT_THRESHOLD is 10, if the specific ad part is on the player's screen for > 10 seconds (Cumulative), it is reported to the server and then the threshold is reset to 0
 ]=]
+
 local AD_IMPRESSION_REPORT_THRESHOLD: number = 10 -- How many impressions to show for a part before sending to the server
 local LOCAL_PLAYER: Player = Players.LocalPlayer
 local BASE_64_CHARS: string = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#"
@@ -52,6 +54,7 @@ local BASE_64_CHARS: string = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLM
     How often to report the character's position to the server for tracking purposes
 ]=]
 local POSITION_REPORTING_TIME: number = 50
+
 --[=[
     @prop IMPRESSION_REPORTING_TIME number
     @within BrainTrackingController
@@ -59,9 +62,8 @@ local POSITION_REPORTING_TIME: number = 50
 ]=]
 local IMPRESSION_REPORTING_TIME: number = 1
 --[=[
-    @interface LOGO_ASSETS
+    @prop table LOGO_ASSETS
     @within BrainTrackingController
-    string
 
     An array of image IDs that should be tracked (Decals/textures should be located under parts tagged with BRAINTRACK_COLLECITONTAG)
     Image IDs can be defined here as strings, or added via BrainTrackingController:AddLogoToTrack(logoTexture: string)
@@ -192,6 +194,8 @@ function BrainTrackingController:_trackPart(logoPart: BasePart | any): nil
 
 		impressionParts[logoPart] = impressionData
 	end
+
+	return nil
 end
 
 --[=[
@@ -205,6 +209,8 @@ function BrainTrackingController:_untrackPart(logoPart: BasePart): nil
 		impressionParts[logoPart]._ancestryConnection:Disconnect()
 		impressionParts[logoPart] = nil
 	end
+
+	return nil
 end
 
 --[=[
