@@ -1,0 +1,60 @@
+{
+    "name": "Sparkles",
+    "tree": {
+      "$className": "DataModel",
+  
+      "Workspace": {
+        "$className": "Workspace",
+        "$properties": {},
+  
+        "LEVEL_GEOMETRY": {
+          "$path": "src/workspace/LEVEL_GEOMETRY"
+        }
+      },
+
+      "ReplicatedStorage": {
+        "$className": "ReplicatedStorage",
+  
+        "Shared": {
+          "$path": "src/Shared"
+        },
+  
+        "Assets": {
+          "$className": "Folder"
+        },
+  
+        "GameVersion": {
+          "$path": "src/GameVersion.txt"
+        },
+
+        "Packages": {
+            "$className": "Folder",
+            "$path": "Packages"
+        }
+      },
+  
+      "ServerStorage": {
+        "$className": "ServerStorage",
+  
+        "Assets": {
+          "$className": "Folder"
+        }
+      },
+  
+      "ServerScriptService": {
+        "$className": "ServerScriptService",
+        
+        "Server": {
+          "$path": "src/Server"
+        }
+      },
+  
+      "ReplicatedFirst": {
+        "$className": "ReplicatedFirst",
+  
+        "Client": {
+          "$path": "src/Client"
+        }
+      }
+    }
+  }
