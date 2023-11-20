@@ -1,6 +1,6 @@
 --[=[
-    @class Types
-    This module exports a list of types that can be used for typechecking
+	@class Types
+	This module exports a list of types that can be used for typechecking
 ]=]
 
 --[=[
@@ -88,7 +88,7 @@ export type ReplicaPath = { string }
 	ListenToChildAdded: (self: Replica, child: Replica) -> (),
 	ListenToRaw: (self: Replica, listener: (listenerType: string, path: { string }, any) -> ()) -> (),
 	ListenToChange: (self: Replica, path: string, listener: (newValue: any, oldValue: any) -> ()) -> (),
-    ListenToNewKey: (self: Replica, path: string, listener: (value: any, newKey: string) -> ()) -> (),
+	ListenToNewKey: (self: Replica, path: string, listener: (value: any, newKey: string) -> ()) -> (),
 	ListenToKeyChanged: (self: Replica, path: string, listener: (newValue: any, oldValue: any) -> ()) -> (), 
 	ListenToArrayInsert: (self: Replica, path: string, listener: (index: number, value: any) -> ()) -> (),
 	ListenToArraySet: (self: Replica, path: string, listener: (index: number, value: any) -> ()) -> (),
