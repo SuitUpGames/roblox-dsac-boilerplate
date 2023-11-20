@@ -84,7 +84,7 @@ export type ReplicaPath = { string }
 
 	ConnectOnServerEvent: (self: Replica, listener: () -> ()) -> (),
 	ConnectOnClientEvent: (self: Replica, listener: () -> ()) -> (),
-
+	
 	ListenToChildAdded: (self: Replica, child: Replica) -> (),
 	ListenToRaw: (self: Replica, listener: (listenerType: string, path: { string }, any) -> ()) -> (),
 	ListenToChange: (self: Replica, path: string, listener: (newValue: any, oldValue: any) -> ()) -> (),
@@ -93,7 +93,7 @@ export type ReplicaPath = { string }
 	ListenToArrayInsert: (self: Replica, path: string, listener: (index: number, value: any) -> ()) -> (),
 	ListenToArraySet: (self: Replica, path: string, listener: (index: number, value: any) -> ()) -> (),
 	ListenToArrayRemove: (self: Replica, path: string, listener: (index: number, value: any) -> ()) -> (),
-}
+	}
 	@within Types
 	The members of the server/client Replica controller/service
 ]=]
