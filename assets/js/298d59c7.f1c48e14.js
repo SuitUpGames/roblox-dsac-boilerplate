@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[710],{63891:s=>{s.exports=JSON.parse('{"sourceUrl":"https://github.com/SuitUpGames/roblox-dsac-boilerplate/blob/master","baseUrl":"/roblox-dsac-boilerplate/","classOrder":[],"apiCategories":[]}')}}]);
