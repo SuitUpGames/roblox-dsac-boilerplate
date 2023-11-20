@@ -4,7 +4,7 @@
 
 Author: ArtemisTheDeer
 Date: 11/14/2023
-Project: roblox-dsac-boilerplate
+Project: Sparkles
 
 Description: Player data Knit controller
 ]=]
@@ -113,38 +113,31 @@ function DataController:DisconnectKeyUpdatedSignal(Key: string): nil
 		self._dataUpdatedSignals[Key]._replicaConnection:Destroy()
 	end
 
-	return nil
+	return
 end
 
 --[=[
-    Initialize DataController
+	Initialize DataController
 	Get the replica of the playerdata from the server, and then set the cachedPlayerdata varaible as the replica
-    @return nil
+	@return nil
 ]=]
 function DataController:KnitInit(): nil
 	ReplicaController = Knit.GetController("ReplicaController")
 
 	ReplicaController:replicaOfClassCreated("Playerdata", function(playerdataReplica: REPLICA)
-		print("Playerdata set for client")
 		cachedPlayerdata = playerdataReplica
 		self._loadedPlayerdata:Fire(playerdataReplica.Data)
 	end)
 
-	--[[
-		Test function: Get the _configuration._build updated key event, and print the output when it's fired
-		self:GetKeyUpdatedSignal("_configuration._build"):andThen(function(S)
-		S:Connect(function(...)
-			print(...)
-		end)
-	end)--]]
-
-	return nil
+	return
 end
 
 --[=[
     Start DataController
     @return nil
 ]=]
-function DataController:KnitStart(): nil end
+function DataController:KnitStart(): nil
+	return
+end
 
 return DataController

@@ -3,7 +3,7 @@
 
 Author: ArtemisTheDeer
 Date: 11/15/2023
-Project: roblox-dsac-boilerplate
+Project: dasc-boilerplate
 
 Description: Basic boilerplate player service (Manages behavior w/players joining/leaving the game)
 ]=]
@@ -11,14 +11,12 @@ Description: Basic boilerplate player service (Manages behavior w/players joinin
 --GetService calls
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local ServerScriptService = game:GetService("ServerScriptService")
-local ServerStorage = game:GetService("ServerStorage")
 
 local Types = require(ReplicatedStorage.Shared.Modules.Data.Types)
 type ANY_TABLE = Types.ANY_TABLE
 --Module imports (Require)
 local Knit: ANY_TABLE = require(ReplicatedStorage.Packages.Knit)
+local NPCService: ANY_TABLE
 
 local PlayerdataService: ANY_TABLE
 local PlayerService: ANY_TABLE = Knit.CreateService({
@@ -33,7 +31,6 @@ local PlayerService: ANY_TABLE = Knit.CreateService({
     @return nil
 ]=]
 function PlayerService._playerAdded(Player: Player): nil
-	print("Player added ", Player)
 	PlayerdataService:GetPlayerdata(Player)
 		:andThen(function(Data: ANY_TABLE)
 			print("Playerdata successfully loaded ", Data)
@@ -41,8 +38,7 @@ function PlayerService._playerAdded(Player: Player): nil
 		:catch(function(Message: any)
 			warn("Could not load playerdata for player ", Player, ": ", Message)
 		end)
-
-		return nil
+	return nil
 end
 
 --[=[
@@ -62,6 +58,7 @@ end
 ]=]
 function PlayerService:KnitInit(): nil
 	PlayerdataService = Knit.GetService("PlayerdataService")
+	NPCService = Knit.GetService("NPCService")
 	return nil
 end
 
@@ -76,7 +73,7 @@ function PlayerService:KnitStart(): nil
 	for _, Player in Players:GetChildren() do
 		self._playerAdded(Player)
 	end
-	
+
 	return nil
 end
 

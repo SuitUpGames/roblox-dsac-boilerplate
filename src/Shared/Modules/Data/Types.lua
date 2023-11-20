@@ -1,6 +1,6 @@
 --[=[
-    @class Types
-    This module exports a list of types that can be used for typechecking
+	@class Types
+	This module exports a list of types that can be used for typechecking
 ]=]
 
 --[=[
@@ -10,6 +10,28 @@
 ]=]
 export type ANY_TABLE = { [any]: any } -- A generic table type that accepts any values
 
+--NPC class
+export type NPC = {
+	ReplicaId: string,
+	_replica: Replica,
+	_npcModel: Model,
+	_outfitLoadout: NPCAppearanceLoadout,
+	_generateNPCModel: (self: NPC, outfitLoadout: NPCAppearanceLoadout) -> ANY_TABLE,
+	_currentPath: { Vector2 | Vector3 },
+	_lastPathWaypoint: { number },
+	new: (Replica) -> NPC,
+	Destroy: (self: ANY_TABLE) -> (),
+	_trove: ANY_TABLE,
+	__index: any,
+}
+
+export type NPCAppearanceLoadout = {
+	Wings: string,
+	Accessories: { [string]: ANY_TABLE },
+	BodyColors: { [string]: Color3 },
+	RigType: string,
+	RigClass: string,
+}
 --ReplicaService/ReplicaController/Replica (Class) related Types
 --[=[
 	@type ReplicaPathListener (newValue: any, oldValue: any) -> ()
@@ -31,9 +53,11 @@ export type ReplicaParams = {
 	ClassName: string,
 	Data: { [string]: any },
 	Tags: { [string]: any },
-	Replication: string | { Player },
+	Replication: ReplicaPlayerReplication,
 	ReplicaId: string?,
 }
+
+export type ReplicaPlayerReplication = string | { Player }
 
 --[=[
 	@type ReplicaPath { string }
@@ -60,16 +84,16 @@ export type ReplicaPath = { string }
 
 	ConnectOnServerEvent: (self: Replica, listener: () -> ()) -> (),
 	ConnectOnClientEvent: (self: Replica, listener: () -> ()) -> (),
-
+	
 	ListenToChildAdded: (self: Replica, child: Replica) -> (),
 	ListenToRaw: (self: Replica, listener: (listenerType: string, path: { string }, any) -> ()) -> (),
 	ListenToChange: (self: Replica, path: string, listener: (newValue: any, oldValue: any) -> ()) -> (),
-    ListenToNewKey: (self: Replica, path: string, listener: (value: any, newKey: string) -> ()) -> (),
+	ListenToNewKey: (self: Replica, path: string, listener: (value: any, newKey: string) -> ()) -> (),
 	ListenToKeyChanged: (self: Replica, path: string, listener: (newValue: any, oldValue: any) -> ()) -> (), 
 	ListenToArrayInsert: (self: Replica, path: string, listener: (index: number, value: any) -> ()) -> (),
 	ListenToArraySet: (self: Replica, path: string, listener: (index: number, value: any) -> ()) -> (),
 	ListenToArrayRemove: (self: Replica, path: string, listener: (index: number, value: any) -> ()) -> (),
-}
+	}
 	@within Types
 	The members of the server/client Replica controller/service
 ]=]

@@ -4,7 +4,7 @@
 
 Author: ArtemisTheDeer, loleris, luarook
 Date: 11/16/2023
-Project: roblox-dsac-boilerplate
+Project: Sparkles
 
 Description: Custom replication controller for stateful values between client and server
 Credit to loleris for using some of the code/ideas from ReplicaService for stateful replication, and luarook for their fork of ReplicaService (That was stripped down of unused functionality)
@@ -23,7 +23,7 @@ type REPLICA_PARAMS = Types.ReplicaParams
 local Knit: ANY_TABLE = require(ReplicatedStorage.Packages.Knit)
 local ReplicaService: ANY_TABLE
 local Promise: ANY_TABLE = require(ReplicatedStorage.Packages.Promise)
-local Replica: REPLICA = require(script.Replica)
+local Replica: ANY_TABLE = require(script.Replica)
 local Signal: ANY_TABLE = require(ReplicatedStorage.Packages.Signal)
 
 local ReplicaController: ANY_TABLE = Knit.CreateController({
@@ -75,7 +75,7 @@ end
 function ReplicaController:_updateReplica(replicaId: string, methodName: string, ...: any)
 	local replica: REPLICA | nil
 	local method: any
-	local args: ANY_TABLE = {...} -- omghax, a way to get variadic args inside the promise
+	local args: ANY_TABLE = { ... } -- omghax, a way to get variadic args inside the promise
 
 	--Wrap method in promise.defer (Resolves if method is successful, rejects if method does not exist/callback fails)
 	return Promise.defer(function(Resolve, Reject)
@@ -95,11 +95,13 @@ function ReplicaController:_updateReplica(replicaId: string, methodName: string,
 		method(replica, table.unpack(args))
 
 		return Resolve()
-	end):finally(function()
-		method = nil
-		--Cleanup references
-		replica = nil
-	end):catch(warn)
+	end)
+		:finally(function()
+			method = nil
+			--Cleanup references
+			replica = nil
+		end)
+		:catch(warn)
 end
 
 --[=[
@@ -124,13 +126,6 @@ function ReplicaController:replicaOfClassCreated(class: string, callback: any): 
 		connection:Disconnect()
 	end
 end
-
---[=[
-    
-    @param class string -- The class of replica that you want to connect to (Eg. "Playerdata")
-    @param callback function -- A function that will be called when a new [Replica] object of the same class parameter is created - only argument provided is the newly created [Replica] object
-    @return function -- Returns a function that (When called) disconnects the created script connection
-]=]
 
 --[=[
     Initialize ReplicaController

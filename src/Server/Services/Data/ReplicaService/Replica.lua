@@ -1,3 +1,8 @@
+--[=[
+	@class ServerReplica
+	Replica class (Server) module
+]=]
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --[[
     Author: @LuaRook
@@ -47,7 +52,6 @@ function ServerReplica.new(params: ReplicaParams)
 	end
 
 	return Promise.new(function(Resolve, Reject)
-		print("New server replica")
 		local newReplica = setmetatable({}, ServerReplica)
 		newReplica._trove = Trove.new()
 
@@ -67,8 +71,6 @@ function ServerReplica.new(params: ReplicaParams)
 			ReplicaUtil.removeListeners(newReplica.ReplicaId)
 			--TODO: Remove this replica from all other clients
 		end)
-
-		print("Finished making new replica")
 
 		Resolve(newReplica)
 		return

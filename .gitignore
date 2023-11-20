@@ -1,4 +1,7 @@
 .DS_Store
 Packages
 sourcemap.json
-wally.lock
+*.rbxlx
+*.rbxl
+*.rbxl.lock
+build

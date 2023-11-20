@@ -1,3 +1,7 @@
+--[=[
+	@class ReplicaUtil
+	ReplicaUtil module
+]=]
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --[[
     Author: @LuaRook

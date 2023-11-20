@@ -13,7 +13,7 @@ type ANY_TABLE = Types.ANY_TABLE
 local BUILD_VERSION: number = game.PlaceVersion
 
 --[=[
-	@interface KEYS_TO_IGNORE
+	@prop name KEYS_TO_IGNORE
 	@within DataTemplate
 
 	An array of strings to ignore w/replication to clients
