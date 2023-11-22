@@ -16,7 +16,6 @@ local Types = require(ReplicatedStorage.Shared.Modules.Data.Types)
 type ANY_TABLE = Types.ANY_TABLE
 --Module imports (Require)
 local Knit: ANY_TABLE = require(ReplicatedStorage.Packages.Knit)
-local NPCService: ANY_TABLE
 
 local PlayerdataService: ANY_TABLE
 local PlayerService: ANY_TABLE = Knit.CreateService({
@@ -58,7 +57,6 @@ end
 ]=]
 function PlayerService:KnitInit(): nil
 	PlayerdataService = Knit.GetService("PlayerdataService")
-	NPCService = Knit.GetService("NPCService")
 	return nil
 end
 
