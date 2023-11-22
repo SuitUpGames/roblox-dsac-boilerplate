@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en" dir="ltr" class="plugin-moonwave plugin-id-moonwave">
+<head>
+<meta charset="UTF-8">
+<meta name="generator" content="Docusaurus v2.3.1">
+<title data-rh="true">AnalyticsService | DSAC Boilerplate</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://suitupgames.github.io/roblox-dsac-boilerplate/api/AnalyticsService"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docusaurus_tag" content="default"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docsearch:docusaurus_tag" content="default"><meta data-rh="true" property="og:title" content="AnalyticsService | DSAC Boilerplate"><meta data-rh="true" name="description" content="Author: Javi M (dig1t)
+
+Description: Knit service that handles GameAnalytics API requests.
+
+Make sure to change the API keys before using this service.
+Development keys should be used for testing and production keys should be used for release.
+
+Before using this service, make sure to configure the following variables inside AnalyticsService.lua:
+- CURRENCIES: List of all in-game currencies
+- BUILD: Game version
+- GAME_KEY: GameAnalytics game key
+- SECRET_KEY: GameAnalytics secret key
+- LOG_DEV_PRODUCT_PURCHASES: Whether or not to automatically log developer product purchases
+- RESOURCE_EVENT_TYPES: List of all resource event types (example: player gained coins in a mission is a
+&quot;Reward&quot; event type, player purchasing coins with Robux is a &quot;Purchase&quot; event type)
+- GAMEPASS_IDS: List of all gamepass ids in the game
+- CUSTOM_DIMENSIONS: Custom dimensions to be used in GameAnalytics (refer to [GameAnalytics docs](https://docs.gameanalytics.com/advanced-tracking/custom-dimensions) about dimensions)
+
+Events that happen during a mission (kills, deaths, rewards) should be
+tracked and logged after the event ends	to avoid hitting API limits.
+For example, if a player kills an enemy during a mission, the kill should be
+tracked and logged (sum of kills) at the end of the mission.
+
+Refer to [GameAnalytics docs](https://docs.gameanalytics.com/integrations/sdk/roblox/event-tracking) for more information and use cases.
+
+Using AnalyticsService to track events on the client:
+```lua
+-- Inside a LocalScript
+local ReplicatedStorage = game:GetService(&quot;ReplicatedStorage&quot;)
+local Players = game:GetService(&quot;Players&quot;)
+
+local Packages = ReplicatedStorage.Packages
+local Knit = require(Packages.Knit)
+
+Knit.Start():await() -- Wait for Knit to start
+
+local AnalyticsService = Knit.GetService(&quot;AnalyticsService&quot;)
+
+local timesOpenedShop: number = 2
+
+Players.PlayerRemoving:Connect(function(player: Player)
+	if player == Players.LocalPlayer then
+		-- Before player leaves the game,
+		-- log the number of times the shop was opened
+		AnalyticsService.LogEvent:Fire({ -- Use AnalyticsService.LogEvent:Fire() to log a client-side event
+			event: &quot;UIEvent:OpenedShop&quot;,
+			value: timesOpenedShop -- Number of times the player opened their shop
+		})
+	end
+end)
+```"><meta data-rh="true" property="og:description" content="Author: Javi M (dig1t)
+
+Description: Knit service that handles GameAnalytics API requests.
+
+Make sure to change the API keys before using this service.
+Development keys should be used for testing and production keys should be used for release.
+
+Before using this service, make sure to configure the following variables inside AnalyticsService.lua:
+- CURRENCIES: List of all in-game currencies
+- BUILD: Game version
+- GAME_KEY: GameAnalytics game key
+- SECRET_KEY: GameAnalytics secret key
+- LOG_DEV_PRODUCT_PURCHASES: Whether or not to automatically log developer product purchases
+- RESOURCE_EVENT_TYPES: List of all resource event types (example: player gained coins in a mission is a
+&quot;Reward&quot; event type, player purchasing coins with Robux is a &quot;Purchase&quot; event type)
+- GAMEPASS_IDS: List of all gamepass ids in the game
+- CUSTOM_DIMENSIONS: Custom dimensions to be used in GameAnalytics (refer to [GameAnalytics docs](https://docs.gameanalytics.com/advanced-tracking/custom-dimensions) about dimensions)
+
+Events that happen during a mission (kills, deaths, rewards) should be
+tracked and logged after the event ends	to avoid hitting API limits.
+For example, if a player kills an enemy during a mission, the kill should be
+tracked and logged (sum of kills) at the end of the mission.
+
+Refer to [GameAnalytics docs](https://docs.gameanalytics.com/integrations/sdk/roblox/event-tracking) for more information and use cases.
+
+Using AnalyticsService to track events on the client:
+```lua
+-- Inside a LocalScript
+local ReplicatedStorage = game:GetService(&quot;ReplicatedStorage&quot;)
+local Players = game:GetService(&quot;Players&quot;)
+
+local Packages = ReplicatedStorage.Packages
+local Knit = require(Packages.Knit)
+
+Knit.Start():await() -- Wait for Knit to start
+
+local AnalyticsService = Knit.GetService(&quot;AnalyticsService&quot;)
+
+local timesOpenedShop: number = 2
+
+Players.PlayerRemoving:Connect(function(player: Player)
+	if player == Players.LocalPlayer then
+		-- Before player leaves the game,
+		-- log the number of times the shop was opened
+		AnalyticsService.LogEvent:Fire({ -- Use AnalyticsService.LogEvent:Fire() to log a client-side event
+			event: &quot;UIEvent:OpenedShop&quot;,
+			value: timesOpenedShop -- Number of times the player opened their shop
+		})
+	end
+end)
+```"><link data-rh="true" rel="canonical" href="https://suitupgames.github.io/roblox-dsac-boilerplate/api/AnalyticsService"><link data-rh="true" rel="alternate" href="https://suitupgames.github.io/roblox-dsac-boilerplate/api/AnalyticsService" hreflang="en"><link data-rh="true" rel="alternate" href="https://suitupgames.github.io/roblox-dsac-boilerplate/api/AnalyticsService" hreflang="x-default"><link rel="stylesheet" href="/roblox-dsac-boilerplate/assets/css/styles.19a5646f.css">
+<link rel="preload" href="/roblox-dsac-boilerplate/assets/js/runtime~main.c0461c73.js" as="script">
+<link rel="preload" href="/roblox-dsac-boilerplate/assets/js/main.4baccbf6.js" as="script">
+</head>
+<body class="navigation-with-keyboard">
+<script>!function(){function e(e){document.documentElement.setAttribute("data-theme",e)}var t=function(){var e=null;try{e=localStorage.getItem("theme")}catch(e){}return e}();null!==t?e(t):window.matchMedia("(prefers-color-scheme: dark)").matches?e("dark"):(window.matchMedia("(prefers-color-scheme: light)").matches,e("light"))}()</script><div id="__docusaurus">
+<div role="region" aria-label="Skip to main content"><a class="skipToContent_fXgn" href="#docusaurus_skipToContent_fallback">Skip to main content</a></div><nav aria-label="Main" class="navbar navbar--fixed-top"><div class="navbar__inner"><div class="navbar__items"><button aria-label="Toggle navigation bar" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/roblox-dsac-boilerplate/"><b class="navbar__title text--truncate">DSAC Boilerplate</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/roblox-dsac-boilerplate/api/">API</a></div><div class="navbar__items navbar__items--right"><a href="https://github.com/SuitUpGames/roblox-dsac-boilerplate" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type="button" disabled="" title="Switch between dark and light mode (currently light mode)" aria-label="Switch between dark and light mode (currently light mode)" aria-live="polite"><svg viewBox="0 0 24 24" width="24" height="24" class="lightToggleIcon_pyhR"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" class="darkToggleIcon_wfgR"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg></button></div><div class="searchBox_ZlJk"><div class="navbar__search"><span aria-label="expand searchbar" role="button" class="search-icon" tabindex="0"></span><input type="search" id="search_input_react" placeholder="Loading..." aria-label="Search" class="navbar__search-input search-bar" disabled=""></div></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="docusaurus_skipToContent_fallback" class="main-wrapper mainWrapper_z2l0 docPageContainer_wNNk"><div class="docPage_Dpn1"><div class="docSidebarContainer_o_re"><div class="sidebar_njMd"><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" href="/roblox-dsac-boilerplate/api/AnalyticsService">​Analytics​Service</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/BrainTrackingController">​Brain​Tracking​Controller</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/CallbackQueue">​Callback​Queue</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/DataController">​Data​Controller</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/DataTemplate">​Data​Template</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/PlayerService">​Player​Service</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/PlayerdataService">​Playerdata​Service</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/Replica">​Replica</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/ReplicaController">​Replica​Controller</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/ReplicaService">​Replica​Service</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/ReplicaUtil">​Replica​Util</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/ServerReplica">​Server​Replica</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/roblox-dsac-boilerplate/api/Types">​Types</a></li></ul></nav></div></div><main class="docMainContainer_HJE1"><div class="container padding-vert--lg"><div class="row"><div class="col docItemCol_MU3C"><div class="docItemContainer_Wv98"><article><div class="member_J0w1 markdown"><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_oUs_"><button type="button" class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><header><h1 class="docTitle_mZRt" style="text-decoration:none"><span style="display:inline-block">Analytics</span><span style="display:inline-block">Service</span></h1><div class="luaClassTags_EipM"><span class="badge_Ba2I" style="color:#00CC67"><span class="badgeTooltip_cWXP">This item only works when running on the server.</span><span class="badgeToolTipTail_H9D_"><svg fill="#00CC67" xmlns="http://www.w3.org/2000/svg" version="1.1" x="0px" y="0px" viewBox="0 0 90 90" role="img" aria-label="This item only works when running on the server."><polygon points="6.125,72.421 58.544,88.523 58.544,24.372 6.125,8.269 "></polygon><polygon points="79.818,15.77 79.868,15.755 29.615,1.453 10.328,6.318 60.102,21.609 "></polygon><path d="M61.643,78.738l22.232-6.582V17.801l-22.232,6.584V78.738z M73.811,69.257c-1.174,0-2.125-1.19-2.125-2.659  c0-1.468,0.951-2.658,2.125-2.658c1.172,0,2.123,1.19,2.123,2.658C75.934,68.066,74.982,69.257,73.811,69.257z M64.898,32.121  l16.336-4.41v7.117l-16.336,4.409V32.121z M64.898,41.292l16.336-4.41v7.116l-16.336,4.409V41.292z M64.898,50.463l16.336-4.411  v7.116l-16.336,4.411V50.463z"></path><polygon points="83.875,74.893 61.643,81.477 61.643,88.547 83.875,81.963 "></polygon></svg> <!-- -->Server</span></span></div><div>
+<p>Author: Javi M (dig1t)</p>
+<p>Description: Knit service that handles GameAnalytics API requests.</p>
+<p>
+  Make sure to change the API keys before using this service.
+  Development keys should be used for testing and production keys should be used for release.
+</p>
+<p>Before using this service, make sure to configure the following variables inside AnalyticsService.lua:</p>
+<ul>
+  <li>CURRENCIES: List of all in-game currencies</li>
+  <li>BUILD: Game version</li>
+  <li>GAME_KEY: GameAnalytics game key</li>
+  <li>SECRET_KEY: GameAnalytics secret key</li>
+  <li>LOG_DEV_PRODUCT_PURCHASES: Whether or not to automatically log developer product purchases</li>
+  <li>
+    RESOURCE_EVENT_TYPES: List of all resource event types (example: player gained coins in a mission is a
+    "Reward" event type, player purchasing coins with Robux is a "Purchase" event type)
+  </li>
+  <li>GAMEPASS_IDS: List of all gamepass ids in the game</li>
+  <li>CUSTOM_DIMENSIONS: Custom dimensions to be used in GameAnalytics (refer to <a href="https://docs.gameanalytics.com/advanced-tracking/custom-dimensions" target="_blank">GameAnalytics docs</a> about dimensions)</li>
+</ul>
+<p>
+  Events that happen during a mission (kills, deaths, rewards) should be
+  tracked and logged after the event ends to avoid hitting API limits.
+  For example, if a player kills an enemy during a mission, the kill should be
+  tracked and logged (sum of kills) at the end of the mission.
+</p>
+<p>Refer to <a href="https://docs.gameanalytics.com/integrations/sdk/roblox/event-tracking" target="_blank">GameAnalytics docs</a> for more information and use cases.</p>
+<p>Using AnalyticsService to track events on the client:</p>
+<pre class="language-lua"><code class="language-lua"><span class="token comment">-- Inside a LocalScript</span>
+<span class="token keyword">local</span> ReplicatedStorage <span class="token operator">=</span> game<span class="token punctuation">:</span><span class="token function">GetService</span><span class="token punctuation">(</span><span class="token string">"ReplicatedStorage"</span><span class="token punctuation">)</span>
+<span class="token keyword">local</span> Players <span class="token operator">=</span> game<span class="token punctuation">:</span><span class="token function">GetService</span><span class="token punctuation">(</span><span class="token string">"Players"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">local</span> Packages <span class="token operator">=</span> ReplicatedStorage<span class="token punctuation">.</span>Packages
+<span class="token keyword">local</span> Knit <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span>Packages<span class="token punctuation">.</span>Knit<span class="token punctuation">)</span>
+
+Knit<span class="token punctuation">.</span><span class="token function">Start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span><span class="token function">await</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">-- Wait for Knit to start</span>
+
+<span class="token keyword">local</span> AnalyticsService <span class="token operator">=</span> Knit<span class="token punctuation">.</span><span class="token function">GetService</span><span class="token punctuation">(</span><span class="token string">"AnalyticsService"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">local</span> timesOpenedShop<span class="token punctuation">:</span> number <span class="token operator">=</span> <span class="token number">2</span>
+
+Players<span class="token punctuation">.</span>PlayerRemoving<span class="token punctuation">:</span><span class="token function">Connect</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span>player<span class="token punctuation">:</span> Player<span class="token punctuation">)</span>
+	<span class="token keyword">if</span> player <span class="token operator">==</span> Players<span class="token punctuation">.</span>LocalPlayer <span class="token keyword">then</span>
+		<span class="token comment">-- Before player leaves the game,</span>
+		<span class="token comment">-- log the number of times the shop was opened</span>
+		AnalyticsService<span class="token punctuation">.</span>LogEvent<span class="token punctuation">:</span><span class="token function">Fire</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token comment">-- Use AnalyticsService.LogEvent:Fire() to log a client-side event</span>
+			event<span class="token punctuation">:</span> <span class="token string">"UIEvent:OpenedShop"</span><span class="token punctuation">,</span>
+			value<span class="token punctuation">:</span> timesOpenedShop <span class="token comment">-- Number of times the player opened their shop</span>
+		<span class="token punctuation">}</span><span class="token punctuation">)</span>
+	<span class="token keyword">end</span>
+<span class="token keyword">end</span><span class="token punctuation">)</span>
+</code></pre>
+</div></header><h2 class="anchor anchorWithStickyNavbar_LWe7" id="types">Types<a href="#types" class="hash-link" aria-label="Direct link to Types" title="Direct link to Types">​</a></h2><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="PurchaseEvent"><code style="text-decoration:none">PurchaseEvent</code><a href="#PurchaseEvent" class="hash-link" aria-label="Direct link to PurchaseEvent" title="Direct link to PurchaseEvent">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/SuitUpGames/roblox-dsac-boilerplate/blob/main/src/Server/Services/Analytics/AnalyticsService.lua#L139"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code class="purple_ieR2">interface</code> <code>PurchaseEvent<!-- --> <!-- -->{</code><div class="inset_uKQm"><div><code>userId<!-- -->: </code><code class="blue_P4bS">number</code></div><div><code>eventType<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>itemId<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>currency<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>flowType<!-- -->: </code><code class="blue_P4bS">string?</code><span class="inlineDescription_G7Er">-- <span>
+<p>Allowed flow types: "Sink", "Source" (defaults to "Sink")</p>
+</span></span></div><div><code>amount<!-- -->: </code><code class="blue_P4bS">number?</code></div></div><code>}</code></div><div>
+<ul>
+  <li>Currency is the in-game currency type used, it must be defined in the CURRENCIES table</li>
+</ul>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="ResourceEvent"><code style="text-decoration:none">ResourceEvent</code><a href="#ResourceEvent" class="hash-link" aria-label="Direct link to ResourceEvent" title="Direct link to ResourceEvent">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/SuitUpGames/roblox-dsac-boilerplate/blob/main/src/Server/Services/Analytics/AnalyticsService.lua#L160"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code class="purple_ieR2">interface</code> <code>ResourceEvent<!-- --> <!-- -->{</code><div class="inset_uKQm"><div><code>userId<!-- -->: </code><code class="blue_P4bS">number</code></div><div><code>eventType<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>itemId<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>currency<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>flowType<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>amount<!-- -->: </code><code class="blue_P4bS">number</code></div></div><code>}</code></div><div>
+<ul>
+  <li>Currency is the in-game currency type used, it must be defined in the CURRENCIES table</li>
+</ul>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="ErrorEvent"><code style="text-decoration:none">ErrorEvent</code><a href="#ErrorEvent" class="hash-link" aria-label="Direct link to ErrorEvent" title="Direct link to ErrorEvent">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/SuitUpGames/roblox-dsac-boilerplate/blob/main/src/Server/Services/Analytics/AnalyticsService.lua#L177"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code class="purple_ieR2">interface</code> <code>ErrorEvent<!-- --> <!-- -->{</code><div class="inset_uKQm"><div><code>message<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>severity<!-- -->: </code><code class="blue_P4bS">string?</code><span class="inlineDescription_G7Er">-- <span>
+<p>Allowed severities: "Debug", "Info", "Warning", "Error", "Critical" (defaults to "Error")</p>
+</span></span></div><div><code>userId<!-- -->: </code><code class="blue_P4bS">number</code></div></div><code>}</code></div><div></div><h2 class="anchor anchorWithStickyNavbar_LWe7" id="functions">Functions<a href="#functions" class="hash-link" aria-label="Direct link to Functions" title="Direct link to Functions">​</a></h2><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="LogPlayerEvent"><code style="text-decoration:none">LogPlayerEvent</code><a href="#LogPlayerEvent" class="hash-link" aria-label="Direct link to LogPlayerEvent" title="Direct link to LogPlayerEvent">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/SuitUpGames/roblox-dsac-boilerplate/blob/main/src/Server/Services/Analytics/AnalyticsService.lua#L343"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>AnalyticsService<!-- -->:</code><code class="green_DgR4">LogPlayerEvent</code><code>(</code><code>data<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-dsac-boilerplate/api/AnalyticsService#PlayerEvent">PlayerEvent</a></code><code>) → </code><code>(</code><code>)</code></div><h3>Types</h3><h3 class="anchor anchorWithStickyNavbar_LWe7" id="PlayerEvent"><a href="#PlayerEvent" class="hash-link" aria-label="Direct link to PlayerEvent" title="Direct link to PlayerEvent">​</a></h3><div class="memberString_GwaU"><code class="purple_ieR2">interface</code> <code>PlayerEvent<!-- --> <!-- -->{</code><div class="inset_uKQm"><div><code>userId<!-- -->: </code><code class="blue_P4bS">number</code></div><div><code>event<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>value<!-- -->: </code><code class="blue_P4bS">number?</code></div></div><code>}</code></div><div></div><div>
+<p>Used to track player events (example: player killed an enemy, player completed a mission, etc.)</p>
+<p>Examples</p>
+<pre class="language-lua"><code class="language-lua">AnalyticsService<span class="token punctuation">:</span><span class="token function">LogPlayerEvent</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+	userId <span class="token operator">=</span> player<span class="token punctuation">.</span>UserId<span class="token punctuation">,</span>
+	event <span class="token operator">=</span> <span class="token string">"Player:KilledEnemy"</span><span class="token punctuation">,</span>
+	value <span class="token operator">=</span> <span class="token number">1</span> <span class="token comment">-- Killed 1 enemy</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+AnalyticsService<span class="token punctuation">:</span><span class="token function">LogPlayerEvent</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+	userId <span class="token operator">=</span> player<span class="token punctuation">.</span>UserId<span class="token punctuation">,</span>
+	event <span class="token operator">=</span> <span class="token string">"Player:CompletedMission"</span><span class="token punctuation">,</span>
+	value <span class="token operator">=</span> <span class="token number">1</span> <span class="token comment">-- Completed 1 mission</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+AnalyticsService<span class="token punctuation">:</span><span class="token function">LogPlayerEvent</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+	userId <span class="token operator">=</span> player<span class="token punctuation">.</span>UserId<span class="token punctuation">,</span>
+	event <span class="token operator">=</span> <span class="token string">"Player:Death"</span><span class="token punctuation">,</span>
+	value <span class="token operator">=</span> <span class="token number">1</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="LogMarketplacePurchase"><code style="text-decoration:none">LogMarketplacePurchase</code><a href="#LogMarketplacePurchase" class="hash-link" aria-label="Direct link to LogMarketplacePurchase" title="Direct link to LogMarketplacePurchase">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/SuitUpGames/roblox-dsac-boilerplate/blob/main/src/Server/Services/Analytics/AnalyticsService.lua#L376"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>AnalyticsService<!-- -->:</code><code class="green_DgR4">LogMarketplacePurchase</code><code>(</code><code>data<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-dsac-boilerplate/api/AnalyticsService#MarketplacePurchaseEvent">MarketplacePurchaseEvent</a></code><code>) → </code><code>(</code><code>)</code></div><h3>Types</h3><h3 class="anchor anchorWithStickyNavbar_LWe7" id="MarketplacePurchaseEvent"><a href="#MarketplacePurchaseEvent" class="hash-link" aria-label="Direct link to MarketplacePurchaseEvent" title="Direct link to MarketplacePurchaseEvent">​</a></h3><div class="memberString_GwaU"><code class="purple_ieR2">interface</code> <code>MarketplacePurchaseEvent<!-- --> <!-- -->{</code><div class="inset_uKQm"><div><code>userId<!-- -->: </code><code class="blue_P4bS">number</code></div><div><code>itemType<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>id<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>amount<!-- -->: </code><code class="blue_P4bS">number?</code></div><div><code>cartType<!-- -->: </code><code class="blue_P4bS">string</code></div></div><code>}</code></div><div></div><div>
+<p>
+  This function should be called when a successful marketplace purchase is made
+  such as a gamepass or developer product
+</p>
+<p>
+  Set <code>LOG_DEV_PRODUCT_PURCHASES</code> to false inside AnalyticsService.lua if you prefer to log
+  developer product purchases within MarketplaceService.ProcessReceipt
+</p>
+<pre class="language-lua"><code class="language-lua"><span class="token comment">-- Inside MarketplaceService.ProcessReceipt</span>
+<span class="token comment">-- before returning Enum.ProductPurchaseDecision.PurchaseGranted</span>
+AnalyticsService<span class="token punctuation">:</span><span class="token function">LogMarketplacePurchase</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+	userId <span class="token operator">=</span> player<span class="token punctuation">.</span>UserId<span class="token punctuation">,</span>
+	itemType <span class="token operator">=</span> <span class="token string">"Product"</span><span class="token punctuation">,</span>
+	id <span class="token operator">=</span> <span class="token number">000000000</span><span class="token punctuation">,</span> <span class="token comment">-- Developer product id</span>
+	cartType <span class="token operator">=</span> <span class="token string">"PromptPurchase"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="LogPurchase"><code style="text-decoration:none">LogPurchase</code><a href="#LogPurchase" class="hash-link" aria-label="Direct link to LogPurchase" title="Direct link to LogPurchase">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/SuitUpGames/roblox-dsac-boilerplate/blob/main/src/Server/Services/Analytics/AnalyticsService.lua#L410"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>AnalyticsService<!-- -->:</code><code class="green_DgR4">LogPurchase</code><code>(</code><code>data<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-dsac-boilerplate/api/AnalyticsService#PurchaseEvent">PurchaseEvent</a></code><code>) → </code><code>(</code><code>)</code></div><div>
+<p>
+  Shortcut function for LogResourceEvent
+  Used to log in-game currency purchases
+</p>
+<p>Example Use:</p>
+<pre class="language-lua"><code class="language-lua">AnalyticsService<span class="token punctuation">:</span><span class="token function">LogPurchase</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+	userId <span class="token operator">=</span> player<span class="token punctuation">.</span>UserId<span class="token punctuation">,</span>
+	eventType <span class="token operator">=</span> <span class="token string">"Shop"</span><span class="token punctuation">,</span>
+	currency <span class="token operator">=</span> <span class="token string">"Coins"</span><span class="token punctuation">,</span>
+	itemId <span class="token operator">=</span> <span class="token string">"Red Paintball Gun"</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="LogResourceEvent"><code style="text-decoration:none">LogResourceEvent</code><a href="#LogResourceEvent" class="hash-link" aria-label="Direct link to LogResourceEvent" title="Direct link to LogResourceEvent">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/SuitUpGames/roblox-dsac-boilerplate/blob/main/src/Server/Services/Analytics/AnalyticsService.lua#L465"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>AnalyticsService<!-- -->:</code><code class="green_DgR4">LogResourceEvent</code><code>(</code><code>data<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-dsac-boilerplate/api/AnalyticsService#ResourceEvent">ResourceEvent</a></code><code>) → </code><code>(</code><code>)</code></div><div>
+<p>
+  Used to log in-game currency changes (example: player spent coins in a shop,
+  player purchased coins, player won coins in a mission)
+</p>
+<p>Example Use:</p>
+<pre class="language-lua"><code class="language-lua"><span class="token comment">-- Player purchased 100 coins with Robux</span>
+AnalyticsService<span class="token punctuation">:</span><span class="token function">LogPurchase</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+	userId <span class="token operator">=</span> player<span class="token punctuation">.</span>UserId<span class="token punctuation">,</span>
+	eventType <span class="token operator">=</span> <span class="token string">"Purchase"</span><span class="token punctuation">,</span>
+	currency <span class="token operator">=</span> <span class="token string">"Coins"</span><span class="token punctuation">,</span>
+	itemId <span class="token operator">=</span> <span class="token string">"100 Coins"</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="LogProgression"><code style="text-decoration:none">LogProgression</code><a href="#LogProgression" class="hash-link" aria-label="Direct link to LogProgression" title="Direct link to LogProgression">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/SuitUpGames/roblox-dsac-boilerplate/blob/main/src/Server/Services/Analytics/AnalyticsService.lua#L539"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>AnalyticsService<!-- -->:</code><code class="green_DgR4">LogProgression</code><code>(</code><code>data<!-- -->: </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/roblox-dsac-boilerplate/api/AnalyticsService#ProgressionEvent">ProgressionEvent</a></code><code>) → </code><code>(</code><code>)</code></div><h3>Types</h3><h3 class="anchor anchorWithStickyNavbar_LWe7" id="ProgressionEvent"><a href="#ProgressionEvent" class="hash-link" aria-label="Direct link to ProgressionEvent" title="Direct link to ProgressionEvent">​</a></h3><div class="memberString_GwaU"><code class="purple_ieR2">interface</code> <code>ProgressionEvent<!-- --> <!-- -->{</code><div class="inset_uKQm"><div><code>userId<!-- -->: </code><code class="blue_P4bS">number</code></div><div><code>status<!-- -->: </code><code class="blue_P4bS">string</code><span class="inlineDescription_G7Er">-- <span>
+<p>Allowed statuses: "Start", "Fail", "Complete"</p>
+</span></span></div><div><code>progression01<!-- -->: </code><code class="blue_P4bS">string</code></div><div><code>progression02<!-- -->: </code><code class="blue_P4bS">string?</code></div><div><code>progression03<!-- -->: </code><code class="blue_P4bS">string?</code></div><div><code>score<!-- -->: </code><code class="blue_P4bS">number?</code></div></div><code>}</code></div><div></div><div>
+<p>
+  Used to track player progression (example: player score in a mission or level)
+  A progression can have up to 3 levels (example: Mission 1, Location 1, Level 1)
+</p>
+<p>Example:</p>
+<pre class="language-lua"><code class="language-lua">AnalyticsService<span class="token punctuation">:</span><span class="token function">LogProgression</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+	userId <span class="token operator">=</span> player<span class="token punctuation">.</span>UserId<span class="token punctuation">,</span>
+	status <span class="token operator">=</span> <span class="token string">"Start"</span><span class="token punctuation">,</span>
+	progression01 <span class="token operator">=</span> <span class="token string">"Mission X"</span><span class="token punctuation">,</span>
+	progression02 <span class="token operator">=</span> <span class="token string">"Location X"</span><span class="token punctuation">,</span>
+	score <span class="token operator">=</span> <span class="token number">100</span> <span class="token comment">-- Started with score of 100</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+AnalyticsService<span class="token punctuation">:</span><span class="token function">LogProgression</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+	userId <span class="token operator">=</span> player<span class="token punctuation">.</span>UserId<span class="token punctuation">,</span>
+	status <span class="token operator">=</span> <span class="token string">"Complete"</span><span class="token punctuation">,</span>
+	progression01 <span class="token operator">=</span> <span class="token string">"Mission X"</span><span class="token punctuation">,</span>
+	progression02 <span class="token operator">=</span> <span class="token string">"Location X"</span><span class="token punctuation">,</span>
+	score <span class="token operator">=</span> <span class="token number">400</span> <span class="token comment">-- Completed the mission with a score of 400</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>For more information on progression events, refer to <a href="https://docs.gameanalytics.com/integrations/sdk/roblox/event-tracking?_highlight=teleportdata#progression" target="_blank">GameAnalytics docs</a> on progression.</p>
+</div></div></article></div><details><summary>Show raw api</summary><pre style="max-width:100%;white-space:pre-wrap">{
+    &quot;functions&quot;: [
+        {
+            &quot;name&quot;: &quot;LogPlayerEvent&quot;,
+            &quot;desc&quot;: &quot;Used to track player events (example: player killed an enemy, player completed a mission, etc.)\n\nExamples\n```lua\nAnalyticsService:LogPlayerEvent({\n\tuserId = player.UserId,\n\tevent = \&quot;Player:KilledEnemy\&quot;,\n\tvalue = 1 -- Killed 1 enemy\n})\nAnalyticsService:LogPlayerEvent({\n\tuserId = player.UserId,\n\tevent = \&quot;Player:CompletedMission\&quot;,\n\tvalue = 1 -- Completed 1 mission\n})\nAnalyticsService:LogPlayerEvent({\n\tuserId = player.UserId,\n\tevent = \&quot;Player:Death\&quot;,\n\tvalue = 1\n})\n```&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;data&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;PlayerEvent&quot;
+                }
+            ],
+            &quot;returns&quot;: [],
+            &quot;function_type&quot;: &quot;method&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 343,
+                &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;LogMarketplacePurchase&quot;,
+            &quot;desc&quot;: &quot;This function should be called when a successful marketplace purchase is made\nsuch as a gamepass or developer product\n\nSet `LOG_DEV_PRODUCT_PURCHASES` to false inside AnalyticsService.lua if you prefer to log\ndeveloper product purchases within MarketplaceService.ProcessReceipt\n\n```lua\n-- Inside MarketplaceService.ProcessReceipt\n-- before returning Enum.ProductPurchaseDecision.PurchaseGranted\nAnalyticsService:LogMarketplacePurchase({\n\tuserId = player.UserId,\n\titemType = \&quot;Product\&quot;,\n\tid = 000000000, -- Developer product id\n\tcartType = \&quot;PromptPurchase\&quot;,\n})\n```&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;data&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;MarketplacePurchaseEvent&quot;
+                }
+            ],
+            &quot;returns&quot;: [],
+            &quot;function_type&quot;: &quot;method&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 376,
+                &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;LogPurchase&quot;,
+            &quot;desc&quot;: &quot;Shortcut function for LogResourceEvent\nUsed to log in-game currency purchases\n\nExample Use:\n```lua\nAnalyticsService:LogPurchase({\n\tuserId = player.UserId,\n\teventType = \&quot;Shop\&quot;,\n\tcurrency = \&quot;Coins\&quot;,\n\titemId = \&quot;Red Paintball Gun\&quot;\n})\n```&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;data&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;PurchaseEvent&quot;
+                }
+            ],
+            &quot;returns&quot;: [],
+            &quot;function_type&quot;: &quot;method&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 410,
+                &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;LogResourceEvent&quot;,
+            &quot;desc&quot;: &quot;Used to log in-game currency changes (example: player spent coins in a shop,\nplayer purchased coins, player won coins in a mission)\n\nExample Use:\n```lua\n-- Player purchased 100 coins with Robux\nAnalyticsService:LogPurchase({\n\tuserId = player.UserId,\n\teventType = \&quot;Purchase\&quot;,\n\tcurrency = \&quot;Coins\&quot;,\n\titemId = \&quot;100 Coins\&quot;\n})\n```&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;data&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;ResourceEvent&quot;
+                }
+            ],
+            &quot;returns&quot;: [],
+            &quot;function_type&quot;: &quot;method&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 465,
+                &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;LogProgression&quot;,
+            &quot;desc&quot;: &quot;Used to track player progression (example: player score in a mission or level)\nA progression can have up to 3 levels (example: Mission 1, Location 1, Level 1)\n\nExample:\n```lua\nAnalyticsService:LogProgression({\n\tuserId = player.UserId,\n\tstatus = \&quot;Start\&quot;,\n\tprogression01 = \&quot;Mission X\&quot;,\n\tprogression02 = \&quot;Location X\&quot;,\n\tscore = 100 -- Started with score of 100\n})\nAnalyticsService:LogProgression({\n\tuserId = player.UserId,\n\tstatus = \&quot;Complete\&quot;,\n\tprogression01 = \&quot;Mission X\&quot;,\n\tprogression02 = \&quot;Location X\&quot;,\n\tscore = 400 -- Completed the mission with a score of 400\n})\n```\n\nFor more information on progression events, refer to [GameAnalytics docs](https://docs.gameanalytics.com/integrations/sdk/roblox/event-tracking?_highlight=teleportdata#progression) on progression.&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;data&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;ProgressionEvent&quot;
+                }
+            ],
+            &quot;returns&quot;: [],
+            &quot;function_type&quot;: &quot;method&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 539,
+                &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+            }
+        }
+    ],
+    &quot;properties&quot;: [],
+    &quot;types&quot;: [
+        {
+            &quot;name&quot;: &quot;PlayerEvent&quot;,
+            &quot;desc&quot;: &quot;&quot;,
+            &quot;fields&quot;: [
+                {
+                    &quot;name&quot;: &quot;userId&quot;,
+                    &quot;lua_type&quot;: &quot;number&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;event&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;value&quot;,
+                    &quot;lua_type&quot;: &quot;number?&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                }
+            ],
+            &quot;source&quot;: {
+                &quot;line&quot;: 104,
+                &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;MarketplacePurchaseEvent&quot;,
+            &quot;desc&quot;: &quot;&quot;,
+            &quot;fields&quot;: [
+                {
+                    &quot;name&quot;: &quot;userId&quot;,
+                    &quot;lua_type&quot;: &quot;number&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;itemType&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;id&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;amount&quot;,
+                    &quot;lua_type&quot;: &quot;number?&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;cartType&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                }
+            ],
+            &quot;source&quot;: {
+                &quot;line&quot;: 119,
+                &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;PurchaseEvent&quot;,
+            &quot;desc&quot;: &quot;- Currency is the in-game currency type used, it must be defined in the CURRENCIES table&quot;,
+            &quot;fields&quot;: [
+                {
+                    &quot;name&quot;: &quot;userId&quot;,
+                    &quot;lua_type&quot;: &quot;number&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;eventType&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;itemId&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;currency&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;flowType&quot;,
+                    &quot;lua_type&quot;: &quot;string?&quot;,
+                    &quot;desc&quot;: &quot;Allowed flow types: \&quot;Sink\&quot;, \&quot;Source\&quot; (defaults to \&quot;Sink\&quot;)&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;amount&quot;,
+                    &quot;lua_type&quot;: &quot;number?&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                }
+            ],
+            &quot;source&quot;: {
+                &quot;line&quot;: 139,
+                &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;ResourceEvent&quot;,
+            &quot;desc&quot;: &quot;- Currency is the in-game currency type used, it must be defined in the CURRENCIES table&quot;,
+            &quot;fields&quot;: [
+                {
+                    &quot;name&quot;: &quot;userId&quot;,
+                    &quot;lua_type&quot;: &quot;number&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;eventType&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;itemId&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;currency&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;flowType&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;amount&quot;,
+                    &quot;lua_type&quot;: &quot;number&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                }
+            ],
+            &quot;source&quot;: {
+                &quot;line&quot;: 160,
+                &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;ErrorEvent&quot;,
+            &quot;desc&quot;: &quot;&quot;,
+            &quot;fields&quot;: [
+                {
+                    &quot;name&quot;: &quot;message&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;severity&quot;,
+                    &quot;lua_type&quot;: &quot;string?&quot;,
+                    &quot;desc&quot;: &quot;Allowed severities: \&quot;Debug\&quot;, \&quot;Info\&quot;, \&quot;Warning\&quot;, \&quot;Error\&quot;, \&quot;Critical\&quot; (defaults to \&quot;Error\&quot;)&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;userId&quot;,
+                    &quot;lua_type&quot;: &quot;number&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                }
+            ],
+            &quot;source&quot;: {
+                &quot;line&quot;: 177,
+                &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;ProgressionEvent&quot;,
+            &quot;desc&quot;: &quot;&quot;,
+            &quot;fields&quot;: [
+                {
+                    &quot;name&quot;: &quot;userId&quot;,
+                    &quot;lua_type&quot;: &quot;number&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;status&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;Allowed statuses: \&quot;Start\&quot;, \&quot;Fail\&quot;, \&quot;Complete\&quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;progression01&quot;,
+                    &quot;lua_type&quot;: &quot;string&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;progression02&quot;,
+                    &quot;lua_type&quot;: &quot;string?&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;progression03&quot;,
+                    &quot;lua_type&quot;: &quot;string?&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                },
+                {
+                    &quot;name&quot;: &quot;score&quot;,
+                    &quot;lua_type&quot;: &quot;number?&quot;,
+                    &quot;desc&quot;: &quot;&quot;
+                }
+            ],
+            &quot;source&quot;: {
+                &quot;line&quot;: 193,
+                &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+            }
+        }
+    ],
+    &quot;name&quot;: &quot;AnalyticsService&quot;,
+    &quot;desc&quot;: &quot;Author: Javi M (dig1t)\n\nDescription: Knit service that handles GameAnalytics API requests.\n\nMake sure to change the API keys before using this service.\nDevelopment keys should be used for testing and production keys should be used for release.\n\nBefore using this service, make sure to configure the following variables inside AnalyticsService.lua:\n- CURRENCIES: List of all in-game currencies\n- BUILD: Game version\n- GAME_KEY: GameAnalytics game key\n- SECRET_KEY: GameAnalytics secret key\n- LOG_DEV_PRODUCT_PURCHASES: Whether or not to automatically log developer product purchases\n- RESOURCE_EVENT_TYPES: List of all resource event types (example: player gained coins in a mission is a\n\&quot;Reward\&quot; event type, player purchasing coins with Robux is a \&quot;Purchase\&quot; event type)\n- GAMEPASS_IDS: List of all gamepass ids in the game\n- CUSTOM_DIMENSIONS: Custom dimensions to be used in GameAnalytics (refer to [GameAnalytics docs](https://docs.gameanalytics.com/advanced-tracking/custom-dimensions) about dimensions)\n\nEvents that happen during a mission (kills, deaths, rewards) should be\ntracked and logged after the event ends\tto avoid hitting API limits.\nFor example, if a player kills an enemy during a mission, the kill should be\ntracked and logged (sum of kills) at the end of the mission.\n\nRefer to [GameAnalytics docs](https://docs.gameanalytics.com/integrations/sdk/roblox/event-tracking) for more information and use cases.\n\nUsing AnalyticsService to track events on the client:\n```lua\n-- Inside a LocalScript\nlocal ReplicatedStorage = game:GetService(\&quot;ReplicatedStorage\&quot;)\nlocal Players = game:GetService(\&quot;Players\&quot;)\n\nlocal Packages = ReplicatedStorage.Packages\nlocal Knit = require(Packages.Knit)\n\nKnit.Start():await() -- Wait for Knit to start\n\nlocal AnalyticsService = Knit.GetService(\&quot;AnalyticsService\&quot;)\n\nlocal timesOpenedShop: number = 2\n\nPlayers.PlayerRemoving:Connect(function(player: Player)\n\tif player == Players.LocalPlayer then\n\t\t-- Before player leaves the game,\n\t\t-- log the number of times the shop was opened\n\t\tAnalyticsService.LogEvent:Fire({ -- Use AnalyticsService.LogEvent:Fire() to log a client-side event\n\t\t\tevent: \&quot;UIEvent:OpenedShop\&quot;,\n\t\t\tvalue: timesOpenedShop -- Number of times the player opened their shop\n\t\t})\n\tend\nend)\n```&quot;,
+    &quot;realm&quot;: [
+        &quot;Server&quot;
+    ],
+    &quot;source&quot;: {
+        &quot;line&quot;: 90,
+        &quot;path&quot;: &quot;src/Server/Services/Analytics/AnalyticsService.lua&quot;
+    }
+}</pre></details></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#types" class="table-of-contents__link toc-highlight">Types</a><ul><li><a href="#ErrorEvent" class="table-of-contents__link toc-highlight">ErrorEvent</a></li><li><a href="#MarketplacePurchaseEvent" class="table-of-contents__link toc-highlight">MarketplacePurchaseEvent</a></li><li><a href="#PlayerEvent" class="table-of-contents__link toc-highlight">PlayerEvent</a></li><li><a href="#ProgressionEvent" class="table-of-contents__link toc-highlight">ProgressionEvent</a></li><li><a href="#PurchaseEvent" class="table-of-contents__link toc-highlight">PurchaseEvent</a></li><li><a href="#ResourceEvent" class="table-of-contents__link toc-highlight">ResourceEvent</a></li></ul></li><li><a href="#properties" class="table-of-contents__link toc-highlight">Properties</a></li><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a><ul><li><a href="#LogMarketplacePurchase" class="table-of-contents__link toc-highlight">:LogMarketplacePurchase</a></li><li><a href="#LogPlayerEvent" class="table-of-contents__link toc-highlight">:LogPlayerEvent</a></li><li><a href="#LogProgression" class="table-of-contents__link toc-highlight">:LogProgression</a></li><li><a href="#LogPurchase" class="table-of-contents__link toc-highlight">:LogPurchase</a></li><li><a href="#LogResourceEvent" class="table-of-contents__link toc-highlight">:LogResourceEvent</a></li></ul></li></ul></div></div></div></div></main></div></div><footer class="footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="col footer__col"><div class="footer__title">examples</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://suitup.games/" target="_blank" rel="noopener noreferrer" class="footer__link-item">Suit Up Games<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2023 Suit Up Games. Built with Moonwave and Docusaurus</div></div></div></footer></div>
+<script src="/roblox-dsac-boilerplate/assets/js/runtime~main.c0461c73.js"></script>
+<script src="/roblox-dsac-boilerplate/assets/js/main.4baccbf6.js"></script>
+</body>
+</html>
