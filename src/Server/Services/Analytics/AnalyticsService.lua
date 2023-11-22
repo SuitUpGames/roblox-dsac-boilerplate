@@ -95,7 +95,7 @@ local AnalyticsService = Knit.CreateService({
 })
 
 --[=[
-	@type PlayerEvent
+	@interface PlayerEvent
 	.userId number
 	.event string
 	.value number?
@@ -108,7 +108,7 @@ type PlayerEvent = {
 }
 
 --[=[
-	@type MarketplacePurchaseEvent
+	@interface MarketplacePurchaseEvent
 	.userId number
 	.itemType string
 	.id string
@@ -125,7 +125,7 @@ type MarketplacePurchaseEvent = {
 }
 
 --[=[
-	@type PurchaseEvent
+	@interface PurchaseEvent
 	.userId number
 	.eventType string
 	.itemId string
@@ -146,7 +146,7 @@ type PurchaseEvent = {
 }
 
 --[=[
-	@type ResourceEvent
+	@interface ResourceEvent
 	.userId number
 	.eventType string
 	.itemId string
@@ -168,7 +168,7 @@ type ResourceEvent = {
 }
 
 --[=[
-	@type ErrorEvent
+	@interface ErrorEvent
 	.message string
 	.severity string? -- Allowed severities: "Debug", "Info", "Warning", "Error", "Critical" (defaults to "Error")
 	.userId number
@@ -181,7 +181,7 @@ type ErrorEvent = {
 }
 
 --[=[
-	@type ProgressionEvent
+	@interface ProgressionEvent
 	.userId number
 	.status string -- Allowed statuses: "Start", "Fail", "Complete"
 	.progression01 string
