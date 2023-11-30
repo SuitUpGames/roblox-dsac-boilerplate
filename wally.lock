@@ -8,6 +8,11 @@ version = "4.0.0"
 dependencies = []
 
 [[package]]
+name = "gameanalytics/gameanalytics-sdk"
+version = "2.2.3"
+dependencies = []
+
+[[package]]
 name = "howmanysmall/janitor"
 version = "1.15.6"
 dependencies = [["Promise", "evaera/promise@4.0.0"]]
@@ -15,7 +20,7 @@ dependencies = [["Promise", "evaera/promise@4.0.0"]]
 [[package]]
 name = "jesse/roblox-dsac-boilerplate"
 version = "0.1.0"
-dependencies = [["Janitor", "howmanysmall/janitor@1.15.6"], ["Knit", "sleitnick/knit@1.5.3"], ["Promise", "evaera/promise@4.0.0"], ["Signal", "sleitnick/signal@1.5.0"], ["Timer", "sleitnick/timer@1.1.2"], ["t", "shanebutt/t@1.3.1"]]
+dependencies = [["GameAnalytics", "gameanalytics/gameanalytics-sdk@2.2.3"], ["Janitor", "howmanysmall/janitor@1.15.6"], ["Knit", "sleitnick/knit@1.5.3"], ["Promise", "evaera/promise@4.0.0"], ["Signal", "sleitnick/signal@1.5.0"], ["Timer", "sleitnick/timer@1.1.2"], ["t", "shanebutt/t@1.3.1"], ["trove", "sleitnick/trove@1.0.1"]]
 
 [[package]]
 name = "shanebutt/t"
@@ -46,3 +51,8 @@ dependencies = []
 name = "sleitnick/timer"
 version = "1.1.2"
 dependencies = [["Signal", "sleitnick/signal@1.5.0"]]
+
+[[package]]
+name = "sleitnick/trove"
+version = "1.0.1"
+dependencies = []

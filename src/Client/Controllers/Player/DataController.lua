@@ -1,156 +1,143 @@
--- DataController
--- Author(s): Jesse
--- Date: 12/06/2021
+--[=[
+@class DataController
+@client
 
---[[
-    FUNCTION    DataController:GetDataByName( name: string ) -> ( any? )
-    FUNCTION    DataController:GetDataChangedSignal( name: string, createIfNoExists: boolean ) -> ( Signal? )
-    FUNCTION    DataController:ObserveDataChanged( name: string, callback: ()->() ) -> ( Connection )
-]]
+Author: ArtemisTheDeer
+Date: 11/14/2023
+Project: Sparkles
 
----------------------------------------------------------------------
+Description: Player data Knit controller
+]=]
 
+--GetService calls
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Constants
+--Types
+local Types = require(ReplicatedStorage.Shared.Modules.Data.Types)
+type ANY_TABLE = Types.ANY_TABLE
+type REPLICA = Types.Replica
 
--- Knit
-local Packages = game:GetService("ReplicatedStorage").Packages
-local Knit = require( Packages:WaitForChild("Knit") )
-local Signal = require( Packages.Signal )
-local Promise = require( Packages.Promise )
-local t = require( Packages.t )
-local DataService
+--Module imports (Require)
+local Knit: ANY_TABLE = require(ReplicatedStorage.Packages.Knit)
+local Promise: ANY_TABLE = require(ReplicatedStorage.Packages.Promise)
+local Signal: ANY_TABLE = require(ReplicatedStorage.Packages.Signal)
+local ReplicaController: ANY_TABLE
 
--- Roblox Services
+local DataController: ANY_TABLE = Knit.CreateController({
+	Name = "DataController",
+	_loadedPlayerdata = Signal.new(),
+	_dataUpdatedSignals = {},
+})
 
--- Variables
+--[=[
+    @prop DATA_LOAD_TIMEOUT number
+    @within DataController
+    The max amount of time to wait for the playerdata to be cached on the client (From the server) on init before timing out and rejecting any associated promises/fallback behavior
+]=]
+local DATA_LOAD_TIMEOUT: number = 10
 
----------------------------------------------------------------------
+local cachedPlayerdata: ANY_TABLE
 
--- DataController properties
-local DataController = Knit.CreateController {
-    Name = "DataController";
-    Data = {};
-    ChangedSignals = {};
-    Initialized = false;
-    InitializationComplete = Signal.new();
-}
-
-
--- Checks and optionally waits for initialization to complete
-function DataController:WaitForInitialization(): ()
-    return self.Initialized or self.InitializationComplete:Wait()
+--[=[
+    Returns a promise that resolves with the playerdata once successfully loaded for the first time, and rejects if the player's data cannot be retrieved for some reason
+    @client
+    @yields
+    @return Promise<T> -- Returns a promise that resolves with the playerdata/rejects if unable to get playerdata
+]=]
+function DataController:GetData(): ANY_TABLE
+	return cachedPlayerdata and Promise.resolve(cachedPlayerdata.Data)
+		or Promise.fromEvent(self._loadedPlayerdata):timeout(DATA_LOAD_TIMEOUT, "Timeout")
 end
 
-
--- Gets the player's full dataset (recommend using GetDataByName instead)
-function DataController:GetData()
-    repeat task.wait() until self.Initialized
-    return self.Data
+--[=[
+    Returns a promise that resolves with a specific value (Looked up by key) from the playerdata, and rejects if the playerdata was unable to be loaded/the key does not exist
+    @client
+    @param Key string -- The key that you want to lookup in the player data table
+    @return Promise<T> -- Returns a promise that resolves w/the value from the player's data, and rejects if the player's data could not be loaded in time and/or the key does not exist
+]=]
+function DataController:GetKey(Key: string): ANY_TABLE
+	return Promise.new(function(Resolve, Reject)
+		self:GetData()
+			:andThen(function(Playerdata: ANY_TABLE)
+				if Playerdata[Key] then
+					Resolve(Playerdata[Key])
+				else
+					Reject(string.format("Key '%s' does not exist in playerdata", Key))
+				end
+			end)
+			:catch(Reject)
+	end)
 end
 
+--[=[
+    Returns a signal that fires (With the value) when the Key argument in the playerdata is updated
+    @client
+    @yields
+    @param Key string -- The key that you want to lookup in the player data table. Can be a specific path if desired (Eg. "Currencies" to listen to currency changes as a whole or "Currencies.Coins" to listen to all coin changes)
+    @return Promise<T> -- Returns a promise that resolves w/a signal that fires when the specific key is updated, and rejects if the playerdata isn't loaded in-time
+]=]
+function DataController:GetKeyUpdatedSignal(Key: string): ANY_TABLE
+	return Promise.new(function(Resolve, Reject)
+		self:GetData()
+			:andThen(function()
+				--TODO: I believe this can be replaced w/the signals used by ReplicaUtil
+				if self._dataUpdatedSignals[Key] then
+					return Resolve(self._dataUpdatedSignals[Key]._signal)
+				end
 
--- Gets a specific value inside of the data
-local tGetDataByName = t.tuple( t.string )
-function DataController:GetDataByName( name: string ): ( any? )
-    assert( tGetDataByName(name) )
-    self:WaitForInitialization()
-    return self.Data[ name ]
+				self._dataUpdatedSignals[Key] = { _signal = Signal.new(), _replicaConnection = nil }
+
+				self._dataUpdatedSignals[Key]._replicaConnection = cachedPlayerdata:ListenToKeyChanged(
+					Key,
+					function(newData: any, oldData: any)
+						self._dataUpdatedSignals[Key]._signal:Fire(newData)
+					end
+				)
+
+				return Resolve(self._dataUpdatedSignals[Key]._signal)
+			end)
+			:catch(Reject)
+	end)
 end
 
+--[=[
+    Removes a data updated connection from the table
+    Warning: Will disconnect all events tied to that key!
+    @client
+    @param Key string -- The key to disconnect - can be a specific path if desired (Eg. "Currencies" to disconnect a signal for "Currencies" or "Currencies.Coins" to disconnect the "Coins" signal)
+    @return nil
+]=]
+function DataController:DisconnectKeyUpdatedSignal(Key: string): nil
+	if self._dataUpdatedSignals[Key] then
+		self._dataUpdatedSignals[Key]._signal:Destroy()
+		self._dataUpdatedSignals[Key]._replicaConnection:Destroy()
+	end
 
--- Returns the signal that fires when that data gets replicated to the client
-local tGetDataChangedSignal = t.tuple( t.string, t.optional(t.boolean) )
-function DataController:GetDataChangedSignal( name: string, createIfNoExists: boolean? ): ( table )
-    assert( tGetDataChangedSignal(name, createIfNoExists) )
-    if ( not createIfNoExists ) then
-        self:WaitForInitialization()
-    end
-
-    local findSignal = self.ChangedSignals[ name ]
-    if ( findSignal ) then
-        return findSignal
-    elseif ( createIfNoExists ) then 
-        local newSignal = Signal.new()
-        self.ChangedSignals[ name ] = newSignal
-        return newSignal
-    else
-        return error( "No data changed signal found for \"" .. tostring(name) .. "\"!" )
-    end
+	return
 end
 
+--[=[
+	Initialize DataController
+	Get the replica of the playerdata from the server, and then set the cachedPlayerdata varaible as the replica
+	@return nil
+]=]
+function DataController:KnitInit(): nil
+	ReplicaController = Knit.GetController("ReplicaController")
 
--- Observes when data gets replicated to the client
-local tObserveDataChanged = t.tuple( t.string, t.callback )
-function DataController:ObserveDataChanged( name: string, callback: ()->() ): ()
-    assert( tObserveDataChanged(name, callback) )
-    local dataChangedSignal = self:GetDataChangedSignal( name )
-    local function Update( ... )
-        callback( ... )
-    end
-    Update( self:GetDataByName(name) )
-    return dataChangedSignal:Connect( Update )
+	ReplicaController:replicaOfClassCreated("Playerdata", function(playerdataReplica: REPLICA)
+		cachedPlayerdata = playerdataReplica
+		self._loadedPlayerdata:Fire(playerdataReplica.Data)
+	end)
+
+	return
 end
 
-
--- When player data is received
-function DataController:_receiveDataUpdate( name: string, value: any? ): ( any? )
-    local changedSignal = self:GetDataChangedSignal( name, true )
-    --print( "Received data update for", name, "| Value:", value )
-    self.Data[ name ] = value
-    changedSignal:Fire( value )
+--[=[
+    Start DataController
+    @return nil
+]=]
+function DataController:KnitStart(): nil
+	return
 end
-
-
--- When player's table data by index is received
-function DataController:_receiveTableIndexUpdate( name: string, index: string, value: any? ): ()
-    local changedSignal = self:GetDataChangedSignal( name, true )
-    local findTable: {} = self:GetDataByName( name )
-    if ( typeof(findTable) == "table" ) then
-        findTable[ index ] = value
-        changedSignal:Fire( findTable )
-    end
-end
-
-
--- Starts this controller
-function DataController:KnitStart(): ()
-    local dataPromise = Promise.new(function( resolve, reject )
-        local function GetData()
-            return pcall(function()
-                return DataService:GetPlayerData()
-            end)
-        end
-
-        local success, data
-        repeat
-            success, data = GetData()
-        until ( success and data ) or ( not task.wait(1) )
-
-        resolve( data )
-    end):andThen(function( data )
-        for name, value in pairs( data ) do
-            task.spawn( self._receiveDataUpdate, self, name, value )
-        end
-
-        self.Initialized = true
-        self.InitializationComplete:Fire()
-    end):catch(warn )
-end
-
-
--- Sets up DataService
-function DataController:KnitInit(): ()
-    DataService = Knit.GetService( "DataService" )
-
-    DataService.ReplicateData:Connect(function( ... )
-        self:_receiveDataUpdate( ... )
-    end)
-
-    DataService.ReplicateTableIndex:Connect(function( ... )
-        self:_receiveTableIndexUpdate( ... )
-    end)
-end
-
 
 return DataController

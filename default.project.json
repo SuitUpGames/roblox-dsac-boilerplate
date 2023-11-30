@@ -1,8 +1,17 @@
 {
-    "name": "Boilerplate Project V2",
+    "name": "dasc-boilerplate",
     "tree": {
       "$className": "DataModel",
   
+      "Workspace": {
+        "$className": "Workspace",
+        "$properties": {},
+  
+        "LEVEL_GEOMETRY": {
+          "$path": "src/workspace/LEVEL_GEOMETRY"
+        }
+      },
+
       "ReplicatedStorage": {
         "$className": "ReplicatedStorage",
   
@@ -12,10 +21,6 @@
   
         "Assets": {
           "$className": "Folder"
-        },
-  
-        "GameVersion": {
-          "$path": "src/GameVersion.txt"
         },
 
         "Packages": {

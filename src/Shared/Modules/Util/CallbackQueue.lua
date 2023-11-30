@@ -1,15 +1,15 @@
--- CallbackQueue
--- Author(s): Jesse Appleton
--- Date: 02/22/2022
+--[=[
+    @class CallbackQueue
+    Author(s): Jesse Appleton
+    Date: 02/22/2022
 
---[[
     Creates a queue of callbacks that execute in the sequence they were added.
     Waits until the callback has completed or the timeout has been reached to move on to the next one.
 
     FUNCTION    CallbackQueue.new( processTimeout: number? = 60 ) -> {}
     FUNCTION    CallbackQueue:Add( fn: ()->(), ...: any ) -> ( Promise )
     FUNCTION    CallbackQueue:AddAsync( fn: ()->(), ...: any ) -> ( ...any )
-]]
+]=]
 
 ---------------------------------------------------------------------
 

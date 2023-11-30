@@ -1,1 +1,7 @@
 .DS_Store
+Packages
+sourcemap.json
+*.rbxlx
+*.rbxl
+*.rbxl.lock
+build
