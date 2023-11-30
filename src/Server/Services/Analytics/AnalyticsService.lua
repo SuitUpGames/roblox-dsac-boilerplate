@@ -906,7 +906,7 @@ end
 	Get the psuedo server player data that's used to communicate with GameAnalytics APIs
 	
 	@private
-	@within Analytics
+	@within AnalyticsService
 	@return any
 ]=]
 function AnalyticsService:_getServerPsuedoPlayer(): { [any]: any }
@@ -949,7 +949,7 @@ end
 		end)
 	```
 	
-	@within Analytics
+	@within AnalyticsService
 	@param remote RemoteConfig -- The name, default value, and context of the remote configuration
 	@return string
 ]=]
