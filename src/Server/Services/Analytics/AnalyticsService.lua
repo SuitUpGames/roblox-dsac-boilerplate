@@ -2,10 +2,13 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local MarketplaceService = game:GetService("MarketplaceService")
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 
 local Packages: any = ReplicatedStorage.Packages
 local Knit: any = require(Packages.Knit)
 local GameAnalytics: any = require(Packages.GameAnalytics)
+local HttpApi: any = require(Packages._Index:FindFirstChild("gameanalytics-sdk", true).GameAnalytics.HttpApi)
 local Promise: any = require(Packages.Promise)
 
 --[=[
@@ -37,7 +40,7 @@ local Promise: any = require(Packages.Promise)
 		build = "1.1.0",
 		gameKey = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 		secretKey = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-		logDevProductPurchases: false,
+		logDevProductPurchases = false,
 		resourceEventTypes = {
 			"Reward",
 			"Purchase",
@@ -45,7 +48,7 @@ local Promise: any = require(Packages.Promise)
 			"Loot",
 			"Combat"
 		},
-		gamepassIds: { 000000000, 111111111 }
+		gamepassIds = { 000000000, 111111111 }
 	})
 	```
 	
@@ -60,26 +63,27 @@ local Promise: any = require(Packages.Promise)
 	
 	Knit.Start():await() -- Wait for Knit to start
 	
-	local AnalyticsService = Knit.GetService("AnalyticsService")
+	AnalyticsService.AddTrackedValue:Fire({ -- This adds a value to a tracked event
+		event = "UIEvent:OpenedShop",
+		value = 1
+	})
 	
-	local timesOpenedShop: number = 2
+	AnalyticsService.LogEvent:Fire({ -- This logs an event
+		event = "UIEvent:FTUE:Completed"
+	})
 	
-	Players.PlayerRemoving:Connect(function(player: Player)
-		if player == Players.LocalPlayer then
-			-- Before player leaves the game,
-			-- log the number of times the shop was opened
-			AnalyticsService.LogEvent:Fire({ -- Use AnalyticsService.LogEvent:Fire() to log a client-side event
-				event: "UIEvent:OpenedShop",
-				value: timesOpenedShop -- Number of times the player opened their shop
-			})
-		end
-	end)
+	AnalyticsService.AddDelayedEvent:Fire({ -- This adds a delayed event that fires when the player leaves
+		event = "UIEvent:ClaimedReward"
+	})
+	```
 	```
 ]=]
 local AnalyticsService = Knit.CreateService({
 	Name = "AnalyticsService";
 	Client = {
 		LogEvent = Knit.CreateSignal();
+		AddDelayedEvent = Knit.CreateSignal();
+		AddTrackedValue = Knit.CreateSignal();
 	};
 })
 
@@ -90,7 +94,7 @@ local AnalyticsService = Knit.CreateService({
 	.dimension03 string?
 	@within AnalyticsService
 ]=]
-type CustomDimensions = {
+export type CustomDimensions = {
 	dimension01: string?,
 	dimension02: string?,
 	dimension03: string?
@@ -108,7 +112,7 @@ type CustomDimensions = {
 	.customDimensions01 CustomDimension? -- Custom dimensions to be used in GameAnalytics (refer to [GameAnalytics docs](https://docs.gameanalytics.com/advanced-tracking/custom-dimensions) about dimensions)
 	@within AnalyticsService
 ]=]
-type AnalyticsOptions = {
+export type AnalyticsOptions = {
 	currencies: { string? }?,
 	build: string?,
 	gameKey: string,
@@ -126,7 +130,7 @@ type AnalyticsOptions = {
 	.value number?
 	@within AnalyticsService
 ]=]
-type PlayerEvent = {
+export type PlayerEvent = {
 	userId: number,
 	event: string,
 	value: number?
@@ -141,7 +145,7 @@ type PlayerEvent = {
 	.cartType string
 	@within AnalyticsService
 ]=]
-type MarketplacePurchaseEvent = {
+export type MarketplacePurchaseEvent = {
 	userId: number,
 	itemType: string,
 	id: string,
@@ -159,9 +163,9 @@ type MarketplacePurchaseEvent = {
 	.amount number?
 	@within AnalyticsService
 	
-	- Currency is the in-game currency type used, it must be defined in the self._options.currencies table
+	- Currency is the in-game currency type used, it must be defined in `AnalyticsService:SetOptions()`
 ]=]
-type PurchaseEvent = {
+export type PurchaseEvent = {
 	userId: number,
 	eventType: string,
 	itemId: string,
@@ -180,9 +184,9 @@ type PurchaseEvent = {
 	.amount number
 	@within AnalyticsService
 	
-	- Currency is the in-game currency type used, it must be defined in the self._options.currencies table
+	- Currency is the in-game currency type used, it must be defined in `AnalyticsService:SetOptions()`
 ]=]
-type ResourceEvent = {
+export type ResourceEvent = {
 	userId: number,
 	eventType: string,
 	itemId: string,
@@ -198,7 +202,7 @@ type ResourceEvent = {
 	.userId number
 	@within AnalyticsService
 ]=]
-type ErrorEvent = {
+export type ErrorEvent = {
 	message: string,
 	severity: string?,
 	userId: number
@@ -214,7 +218,7 @@ type ErrorEvent = {
 	.score number? -- Adding a score is optional
 	@within AnalyticsService
 ]=]
-type ProgressionEvent = {
+export type ProgressionEvent = {
 	userId: number,
 	status: string,
 	progression01: string,
@@ -223,12 +227,54 @@ type ProgressionEvent = {
 	score: number?
 }
 
+--[=[
+	@interface DelayedEvent
+	.userId number?
+	.event string
+	.value number?
+	@within AnalyticsService
+]=]
+export type DelayedEvent = {
+	userId: number?,
+	event: string,
+	value: number?
+}
+
+--[=[
+	@interface TrackedValueEvent
+	.userId number?
+	.event string
+	.value number?
+	@within AnalyticsService
+]=]
+export type TrackedValueEvent = {
+	userId: number?,
+	event: string,
+	value: number?
+}
+
+--[=[
+	@interface RemoteConfig
+	.player Player?
+	.name string
+	.defaultValue string
+	.value string?
+	@within AnalyticsService
+]=]
+export type RemoteConfig = {
+	player: Player?,
+	name: string,
+	defaultValue: string,
+	value: string?
+}
+
+function AnalyticsService:KnitInit()
+	self._events = {}
+	self._trackedEvents = {}
+end
+
 --- @private
 function AnalyticsService:_start(): nil
-	if self._enabled then
-		return
-	end
-	
 	GameAnalytics:configureBuild(self._options.build)
 	
 	if self._options.customDimensions then
@@ -263,6 +309,24 @@ function AnalyticsService:_start(): nil
 		value: number?
 	})
 		self:LogPlayerEvent({
+			userId = player.UserId,
+			event = data.event,
+			value = data.value
+		})
+	end)
+	
+	-- Logs an event to be sent once the player is leaving the game
+	self.Client.AddDelayedEvent:Connect(function(player: Player, data: DelayedEvent)
+		self:AddDelayedEvent({
+			userId = player.UserId,
+			event = data.event,
+			value = data.value
+		})
+	end)
+	
+	-- Adds a value to a tracked event, it will be sent once the player is leaving the game
+	self.Client.AddTrackedValue:Connect(function(player: Player, data: TrackedValueEvent)
+		self:AddTrackedValue({
 			userId = player.UserId,
 			event = data.event,
 			value = data.value
@@ -346,6 +410,44 @@ function AnalyticsService:_start(): nil
 		end
 	)
 	
+	Players.PlayerRemoving:Connect(function(player: Player)
+		self:_flushTrackedEvents(player)
+	end)
+	
+	return
+end
+
+--- @private
+function AnalyticsService:_flushTrackedEvents(player: Player): nil
+	if not player or not self._enabled then
+		return
+	end
+	
+	local userId: number = player.UserId
+	
+	if self._events[userId] then
+		for _, event in pairs(self._events[userId]) do
+			self:LogPlayerEvent({
+				userId = userId,
+				event = event
+			})
+		end
+		
+		self._events[userId] = nil
+	end
+	
+	if self._trackedEvents[userId] then
+		for event, value in pairs(self._trackedEvents[userId]) do
+			self:LogPlayerEvent({
+				userId = userId,
+				event = event,
+				value = value
+			})
+		end
+		
+		self._trackedEvents[userId] = nil
+	end
+	
 	return
 end
 
@@ -418,6 +520,11 @@ function AnalyticsService:LogPlayerEvent(data: PlayerEvent): { [any]: any }
 			return reject("AnalyticsService.LogPlayerEvent - event is required")
 		elseif data.value ~= nil and typeof(data.value) ~= "number" then
 			return reject("AnalyticsService.LogPlayerEvent - value must be a number")
+		end
+		
+		-- Trim trailing colon
+		if string.sub(data.event, #data.event) == ":" then
+			data.event = string.sub(data.event, 1, #data.event - 1)
 		end
 		
 		GameAnalytics:addDesignEvent(data.userId, {
@@ -503,7 +610,7 @@ function AnalyticsService:LogPurchase(data: PurchaseEvent): { [any]: any }
 		elseif not self._options.resourceEventTypes then
 			return reject("resource event types must be configured during AnalyticsService:SetOptions() in order to log resource events")
 		elseif not table.find(self._options.resourceEventTypes, data.eventType) then
-			return reject("eventType " .. data.eventType .. " is invalid. Please define it in self._options.resourceEventTypes")
+			return reject("eventType " .. data.eventType .. " is invalid. Please define it in AnalyticsService:SetOptions()")
 		elseif not data.itemId then
 			return reject("itemId is required")
 		elseif not data.currency then
@@ -543,11 +650,13 @@ end
 	Example Use:
 	```lua
 	-- Player purchased 100 coins with Robux
-	AnalyticsService:LogPurchase({
+	AnalyticsService:LogResourceEvent({
 		userId = player.UserId,
 		eventType = "Purchase",
 		currency = "Coins",
-		itemId = "100 Coins"
+		itemId = "100 Coins",
+		flowType = "Source",
+		amount = 100
 	})
 	```
 	
@@ -565,7 +674,7 @@ function AnalyticsService:LogResourceEvent(data: ResourceEvent): { [any]: any }
 		elseif not self._options.resourceEventTypes then
 			return reject("resource event types must be configured during AnalyticsService:SetOptions() in order to log resource events")
 		elseif not table.find(self._options.resourceEventTypes, data.eventType) then
-			return reject("eventType " .. data.eventType .. " is invalid. Please define it in self._options.resourceEventTypes")
+			return reject("eventType " .. data.eventType .. " is invalid. Please define it in AnalyticsService:SetOptions()")
 		elseif not data.itemId then
 			return reject("itemId is required")
 		elseif not data.currency then
@@ -574,7 +683,7 @@ function AnalyticsService:LogResourceEvent(data: ResourceEvent): { [any]: any }
 			return reject("currency type is invalid")
 		elseif not GameAnalytics.EGAResourceFlowType[data.flowType] then
 			return reject("flow type is invalid")
-		elseif not typeof(data.amount) == "number" then
+		elseif typeof(data.amount) ~= "number" then
 			return reject("amount is required")
 		end
 		
@@ -596,9 +705,11 @@ end
 	
 	Example Use:
 	```lua
+	local missionName: string = "Invalid Mission Name"
+	
 	AnalyticsService:LogError({
 		userId = player.UserId,
-		message = "Player tried to join a mission that doesn't exist named 'Invalid Mission Name'",
+		message = "Player tried to join a mission that doesn't exist named " .. missionName,
 		severity = "Error"
 	})
 	```
@@ -666,7 +777,7 @@ end
 function AnalyticsService:LogProgression(data: ProgressionEvent): { [any]: any }
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
-			return reject("AnalyticsService must be configured with :SetOptions()")
+			return reject("AnalyticsService must be configured with AnalyticsService:SetOptions()")
 		elseif not data.userId then
 			return reject("userId is required")
 		elseif not data.status then
@@ -694,6 +805,194 @@ function AnalyticsService:LogProgression(data: ProgressionEvent): { [any]: any }
 		})
 		
 		return resolve()
+	end)
+end
+
+--[=[
+	Used to add a delayed event that fires when the player leaves
+	
+	Example Use:
+	```lua
+	AnalyticsService:AddDelayedEvent({
+		userId = player.UserId,
+		event = "Player:ClaimedReward"
+	})
+	```
+	
+	Example client use:
+	```lua
+	AnalyticsService.AddDelayedEvent:Fire({
+		event = "UIEvent:FTUE:Completed"
+	})
+	```
+	
+	@param data DelayedEvent
+	@return nil
+]=]
+function AnalyticsService:AddDelayedEvent(data: DelayedEvent): nil
+	if not self._enabled or not data.userId then
+		return
+	end
+	
+	if not self._events[data.userId] then
+		self._events[data.userId] = {}
+	end
+	
+	if not data.event then
+		return
+	elseif data.value ~= nil and typeof(data.value) ~= "number" then
+		return
+	end
+	
+	self._events[data.userId][#self._events[data.userId] + 1] = {
+		event = data.event,
+		value = data.value
+	}
+	
+	return
+end
+
+--[=[
+	Used to add a value to a tracked event
+	
+	Example Use:
+	```lua
+	AnalyticsService:AddTrackedValue({
+		userId = player.UserId,
+		event = "Player:Kills",
+		value = 2 -- Optional, defaults to 1
+	})
+	```
+	
+	Example client use:
+	```lua
+	AnalyticsService.AddTrackedValue:Fire({
+		event = "UIEvent:OpenedShop"
+	})
+	```
+	
+	@param data TrackedValueEvent
+	@return nil
+]=]
+function AnalyticsService:AddTrackedValue(data: TrackedValueEvent): nil
+	if not self._enabled or not data.userId or not data.event then
+		return
+	end
+	
+	if data.value ~= nil and typeof(data.value) ~= "number" then
+		return
+	end
+	
+	if not self._trackedEvents[data.userId] then
+		self._trackedEvents[data.userId] = {}
+	end
+	
+	if not data.event then
+		return
+	elseif data.value ~= nil and typeof(data.value) ~= "number" then
+		return
+	end
+	
+	if not self._trackedEvents[data.userId][data.event] then
+		self._trackedEvents[data.userId][data.event] = 0
+	end
+	
+	self._trackedEvents[data.userId][data.event] += data.value or 1
+	
+	return
+end
+
+--[=[
+	Get the psuedo server player data that's used to communicate with GameAnalytics APIs
+	
+	@private
+	@within Analytics
+	@return any
+]=]
+function AnalyticsService:_getServerPsuedoPlayer(): { [any]: any }
+	return {
+		id = "DummyId",
+		PlayerData = {
+			OS = "uwp_desktop 0.0.0",
+			Platform = "uwp_desktop",
+			SessionID = HttpService:GenerateGUID(false):lower(),
+			Sessions = 1,
+			CustomUserId = "Server"
+		}
+	}
+end
+
+--[=[
+	Get the value of a remote configuration or A/B test given context ( player.UserId )
+	
+	Example Use:
+	```lua
+	local remoteValue = AnalyticsService:GetRemoteConfig({
+		player = player,
+		name = "Test",
+		defaultValue = "Default"
+	}):await()
+	```
+	
+	```lua
+	AnalyticsService:GetRemoteConfig({
+		player = player,
+		name = "Test",
+		defaultValue = "Default"
+	})
+		:andThen(
+		function(remoteValue)
+			print(remoteValue)
+		end)
+		:catch(function(err)
+			warn(err)
+		end)
+	```
+	
+	@within Analytics
+	@param remote RemoteConfig -- The name, default value, and context of the remote configuration
+	@return string
+]=]
+function AnalyticsService:GetRemoteConfig(remote: RemoteConfig): { [any]: any }
+	return Promise.new(function(resolve, reject)
+		if not remote then
+			return reject("AnalyticsService.GetRemoteConfig - remote is required")
+		elseif not remote.name then
+			return reject("AnalyticsService.GetRemoteConfig - remote.name is required")
+		elseif not remote.defaultValue then
+			return reject("AnalyticsService.GetRemoteConfig - remote.defaultValue is required")
+		end
+		
+		if not self._enabled then
+			return resolve(remote.defaultValue)
+		end
+		
+		local player: Player? = remote.player
+		local context: any = self:_getServerPsuedoPlayer()
+		local server: any = not player and HttpApi:initRequest(
+			self._options.gameKey,
+			self._options.secretKey,
+			self._options.build,
+			context.PlayerData,
+			""
+		)
+		
+		if server and server.statusCode >= 9 then
+			for _, config in (server.body.configs or {}) do
+				if config.key == remote.name then
+					return resolve(config.value)
+				end
+			end
+		end
+		
+		if player and not GameAnalytics:isRemoteConfigsReady(player.UserId) then
+			return resolve(remote.defaultValue)
+		end
+		
+		return resolve(player and GameAnalytics:getRemoteConfigsValueAsString(player.UserId, {
+			key = remote.name,
+			defaultValue = remote.defaultValue
+		}) or remote.defaultValue)
 	end)
 end
 
