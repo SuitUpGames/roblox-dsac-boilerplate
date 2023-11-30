@@ -36,6 +36,7 @@ local CallbackQueue = {}
 CallbackQueue.__index = CallbackQueue
 
 
+-- Creates new callback queue
 local tNew = t.tuple( t.optional(t.numberPositive) )
 function CallbackQueue.new( processTimeout: number? ): table
     assert( tNew(processTimeout) )
@@ -71,6 +72,7 @@ function CallbackQueue.new( processTimeout: number? ): table
 end
 
 
+-- Executes next item in queue
 function CallbackQueue:_processNext(): ()
     if ( self.Processing ) then
         return
@@ -114,6 +116,7 @@ function CallbackQueue:_processNext(): ()
 end
 
 
+-- Adds callback to queue
 local tAdd = t.tuple( t.callback )
 function CallbackQueue:Add( callback: ()->(), ...: any ): ( Promise )
     assert( tAdd(callback) )
@@ -136,6 +139,7 @@ function CallbackQueue:Add( callback: ()->(), ...: any ): ( Promise )
 end
 
 
+-- Adds callback to queue asynchronously
 function CallbackQueue:AddAsync( callback: ()->(), ...: any ): ( ...any )
     local finishPromise: {} = self:Add( callback, ... )
 
@@ -148,6 +152,7 @@ function CallbackQueue:AddAsync( callback: ()->(), ...: any ): ( ...any )
 end
 
 
+-- Destroys callback queue
 function CallbackQueue:Destroy(): ()
     self._destroyed = true
     self._janitor:Destroy()
