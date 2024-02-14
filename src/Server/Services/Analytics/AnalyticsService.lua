@@ -643,7 +643,11 @@ function AnalyticsService:_start(): nil
 	return
 end
 
---- @private
+--[=[
+	@private
+	@param fn function
+	@param ... any
+]=]
 function AnalyticsService:_wrapper(fn: string, ...): nil
 	local args = { ... }
 
@@ -1172,7 +1176,7 @@ end
 	Get the psuedo server player data that's used to communicate with GameAnalytics APIs
 
 	@private
-	@within Analytics
+	@within AnalyticsService
 	@return ServerPsuedoPlayer
 ]=]
 function AnalyticsService:_getServerPsuedoPlayer(): ServerPsuedoPlayer
@@ -1215,7 +1219,7 @@ end
 		end)
 	```
 
-	@within Analytics
+	@within AnalyticsService
 	@param remote RemoteConfig -- The name, default value, and context of the remote configuration
 	@return Promise
 ]=]
