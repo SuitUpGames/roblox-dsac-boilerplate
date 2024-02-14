@@ -3,24 +3,19 @@
 registry = "test"
 
 [[package]]
+name = "dig1t/gameanalytics-sdk"
+version = "2.2.4"
+dependencies = []
+
+[[package]]
 name = "evaera/promise"
 version = "4.0.0"
 dependencies = []
 
 [[package]]
-name = "gameanalytics/gameanalytics-sdk"
-version = "2.2.3"
-dependencies = []
-
-[[package]]
 name = "howmanysmall/janitor"
-version = "1.15.6"
+version = "1.15.7"
 dependencies = [["Promise", "evaera/promise@4.0.0"]]
-
-[[package]]
-name = "jesse/roblox-dsac-boilerplate"
-version = "0.1.0"
-dependencies = [["GameAnalytics", "gameanalytics/gameanalytics-sdk@2.2.3"], ["Janitor", "howmanysmall/janitor@1.15.6"], ["Knit", "sleitnick/knit@1.5.3"], ["Promise", "evaera/promise@4.0.0"], ["Signal", "sleitnick/signal@1.5.0"], ["Timer", "sleitnick/timer@1.1.2"], ["t", "shanebutt/t@1.3.1"], ["trove", "sleitnick/trove@1.0.1"]]
 
 [[package]]
 name = "shanebutt/t"
@@ -29,22 +24,27 @@ dependencies = []
 
 [[package]]
 name = "sleitnick/comm"
-version = "0.3.2"
-dependencies = [["Option", "sleitnick/option@1.0.4"], ["Promise", "evaera/promise@4.0.0"], ["Signal", "sleitnick/signal@1.5.0"]]
+version = "1.0.1"
+dependencies = [["Option", "sleitnick/option@1.0.5"], ["Promise", "evaera/promise@4.0.0"], ["Signal", "sleitnick/signal@2.0.1"]]
 
 [[package]]
 name = "sleitnick/knit"
-version = "1.5.3"
-dependencies = [["Comm", "sleitnick/comm@0.3.2"], ["Promise", "evaera/promise@4.0.0"]]
+version = "1.7.0"
+dependencies = [["Comm", "sleitnick/comm@1.0.1"], ["Promise", "evaera/promise@4.0.0"]]
 
 [[package]]
 name = "sleitnick/option"
-version = "1.0.4"
+version = "1.0.5"
 dependencies = []
 
 [[package]]
 name = "sleitnick/signal"
 version = "1.5.0"
+dependencies = []
+
+[[package]]
+name = "sleitnick/signal"
+version = "2.0.1"
 dependencies = []
 
 [[package]]
@@ -54,5 +54,10 @@ dependencies = [["Signal", "sleitnick/signal@1.5.0"]]
 
 [[package]]
 name = "sleitnick/trove"
-version = "1.0.1"
+version = "1.1.0"
 dependencies = []
+
+[[package]]
+name = "suit-up-repos/roblox-dsac-boilerplate"
+version = "0.1.0"
+dependencies = [["GameAnalytics", "dig1t/gameanalytics-sdk@2.2.4"], ["Janitor", "howmanysmall/janitor@1.15.7"], ["Knit", "sleitnick/knit@1.7.0"], ["Promise", "evaera/promise@4.0.0"], ["Signal", "sleitnick/signal@1.5.0"], ["Timer", "sleitnick/timer@1.1.2"], ["t", "shanebutt/t@1.3.1"], ["trove", "sleitnick/trove@1.1.0"]]
