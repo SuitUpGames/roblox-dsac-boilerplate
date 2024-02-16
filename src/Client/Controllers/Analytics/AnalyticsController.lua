@@ -107,7 +107,7 @@ function AnalyticsController:KnitStart()
 
 		CollectionService
 			:GetInstanceRemovedSignal(IMPRESSION_TAG)
-			:Connect(function(part: BasePart?)
+			:Connect(function(part: BasePart)
 				for index, data: ImpressionPart in pairs(self._impressionParts) do
 					if data.part == part then
 						table.remove(self._impressionParts, index)
