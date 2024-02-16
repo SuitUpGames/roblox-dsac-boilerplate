@@ -158,7 +158,8 @@ function AnalyticsController:_track()
 		return
 	end
 
-	for index, data: ImpressionPart in self._impressionParts do
+for index: number = #self._impressionParts, 1, -1 do
+     local data: ImpressionPart = self._impressionParts[index]
 		if not data.part or not data.part.Parent then
 			table.remove(self._impressionParts, index)
 			continue
