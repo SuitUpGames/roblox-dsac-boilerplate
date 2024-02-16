@@ -631,7 +631,7 @@ function AnalyticsService:_start(): nil
 		if player.FollowUserId ~= 0 then
 			self:LogPlayerEvent({
 				userId = player.UserId,
-				event = "Player:JoinedFriend",
+				event = "Player:FollowedPlayer",
 			})
 		end
 	end)
@@ -651,17 +651,8 @@ end
 function AnalyticsService:_wrapper(fn: string, ...): nil
 	local args = { ... }
 
-	Promise.new(function(resolve, reject)
-		local success, result = pcall(GameAnalytics[fn], GameAnalytics, unpack(args))
-
-		if success then
-			return resolve(result)
-		else
-			return reject(result)
-		end
-	end):catch(function(err)
-		warn(err)
-	end)
+	local promiseFunction = Promise.promisify(GameAnalytics[fn])
+	promiseFunction(GameAnalytics, unpack(args)):catch(warn)
 
 	return
 end
@@ -788,9 +779,9 @@ end
 	```
 
 	@param data PlayerEvent
-	@return Promise
+	@return Promise<T>
 ]=]
-function AnalyticsService:LogPlayerEvent(data: PlayerEvent)
+function AnalyticsService:LogPlayerEvent(data: PlayerEvent): { [any]: any }
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
@@ -815,7 +806,7 @@ function AnalyticsService:LogPlayerEvent(data: PlayerEvent)
 			value = data.value,
 		})
 
-		resolve()
+		return resolve()
 	end)
 end
 
@@ -830,9 +821,9 @@ end
 	```
 
 	@param data MarketplacePurchaseEvent
-	@return Promise
+	@return Promise<T>
 ]=]
-function AnalyticsService:LogMarketplacePurchase(data: MarketplacePurchaseEvent)
+function AnalyticsService:LogMarketplacePurchase(data: MarketplacePurchaseEvent): { [any]: any }
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
@@ -853,7 +844,7 @@ function AnalyticsService:LogMarketplacePurchase(data: MarketplacePurchaseEvent)
 			cartType = data.cartType,
 		})
 
-		resolve()
+		return resolve()
 	end)
 end
 
@@ -872,9 +863,9 @@ end
 	```
 
 	@param data PurchaseEvent
-	@return Promise
+	@return Promise<T>
 ]=]
-function AnalyticsService:LogPurchase(data: PurchaseEvent)
+function AnalyticsService:LogPurchase(data: PurchaseEvent): { [any]: any }
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
@@ -908,7 +899,7 @@ function AnalyticsService:LogPurchase(data: PurchaseEvent)
 			itemId = data.itemId,
 		})
 
-		resolve()
+		return resolve()
 	end)
 end
 
@@ -930,9 +921,9 @@ end
 	```
 
 	@param data ResourceEvent
-	@return Promise
+	@return Promise<T>
 ]=]
-function AnalyticsService:LogResourceEvent(data: ResourceEvent)
+function AnalyticsService:LogResourceEvent(data: ResourceEvent): { [any]: any }
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
@@ -966,7 +957,7 @@ function AnalyticsService:LogResourceEvent(data: ResourceEvent)
 			itemId = data.itemId,
 		})
 
-		resolve()
+		return resolve()
 	end)
 end
 
@@ -985,9 +976,9 @@ end
 	```
 
 	@param data ErrorEvent
-	@return Promise
+	@return Promise<T>
 ]=]
-function AnalyticsService:LogError(data: ErrorEvent)
+function AnalyticsService:LogError(data: ErrorEvent): { [any]: any }
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
@@ -1006,7 +997,7 @@ function AnalyticsService:LogError(data: ErrorEvent)
 			severity = GameAnalytics.EGAErrorSeverity[errorSeverity],
 		})
 
-		resolve()
+		return resolve()
 	end)
 end
 
@@ -1042,9 +1033,9 @@ end
 	For more information about progression events, refer to [GameAnalytics docs](https://docs.gameanalytics.com/integrations/sdk/roblox/event-tracking?_highlight=teleportdata#progression) on progression.
 
 	@param data ProgressionEvent
-	@return Promise
+	@return Promise<T>
 ]=]
-function AnalyticsService:LogProgression(data: ProgressionEvent)
+function AnalyticsService:LogProgression(data: ProgressionEvent): { [any]: any }
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with AnalyticsService:SetOptions()")
@@ -1074,7 +1065,7 @@ function AnalyticsService:LogProgression(data: ProgressionEvent)
 			score = data.score or 0,
 		})
 
-		resolve()
+		return resolve()
 	end)
 end
 
@@ -1221,9 +1212,9 @@ end
 
 	@within AnalyticsService
 	@param remote RemoteConfig -- The name, default value, and context of the remote configuration
-	@return Promise
+	@return Promise<T>
 ]=]
-function AnalyticsService:GetRemoteConfig(remote: RemoteConfig)
+function AnalyticsService:GetRemoteConfig(remote: RemoteConfig): { [any]: any }
 	return Promise.new(function(resolve, reject)
 		if not remote then
 			return reject("AnalyticsService.GetRemoteConfig - remote is required")
@@ -1262,7 +1253,7 @@ function AnalyticsService:GetRemoteConfig(remote: RemoteConfig)
 			return resolve(remote.defaultValue)
 		end
 
-		resolve(player and GameAnalytics:getRemoteConfigsValueAsString(player.UserId, {
+		return resolve(player and GameAnalytics:getRemoteConfigsValueAsString(player.UserId, {
 			key = remote.name,
 			defaultValue = remote.defaultValue,
 		}) or remote.defaultValue)
@@ -1293,9 +1284,9 @@ local dimensionSetter: { [string]: string } = {
 	For more information about dimensions, refer to [GameAnalytics docs](https://docs.gameanalytics.com/integrations/sdk/roblox/sdk-features?_highlight=dimension#custom-dimensions) on dimensions.
 
 	@param data DimensionData
-	@return Promise
+	@return Promise<T>
 ]=]
-function AnalyticsService:SetCustomDimension(data: DimensionData)
+function AnalyticsService:SetCustomDimension(data: DimensionData): { [any]: any }
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
@@ -1323,7 +1314,7 @@ function AnalyticsService:SetCustomDimension(data: DimensionData)
 
 		self:_wrapper(setter, data.userId, data.value)
 
-		resolve()
+		return resolve()
 	end)
 end
 
