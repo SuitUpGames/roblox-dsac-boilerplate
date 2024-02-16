@@ -645,7 +645,7 @@ end
 
 --[=[
 	@private
-	@param fn function
+	@param fn string
 	@param ... any
 ]=]
 function AnalyticsService:_wrapper(fn: string, ...): nil
