@@ -135,7 +135,7 @@ function AnalyticsController:_handleCharacterAdded(character: Model)
 	end))
 end
 
-function AnalyticsController:_addImpressionObject(part: BasePart?)
+function AnalyticsController:_addImpressionObject(part: BasePart)
 	if not part or not part:IsA("BasePart") then
 		return
 	end
