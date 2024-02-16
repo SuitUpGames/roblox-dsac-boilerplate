@@ -87,7 +87,7 @@ playerTeleportedToGame = teleportData and (teleportData.Value == "no data" or #t
 	end)
 
 	task.spawn(function()
-		for _, part: BasePart? in pairs(CollectionService:GetTagged(IMPRESSION_TAG)) do
+		for _, part: BasePart in CollectionService:GetTagged(IMPRESSION_TAG) do
 			self:_addImpressionObject(part)
 		end
 
