@@ -93,7 +93,7 @@ playerTeleportedToGame = teleportData and (teleportData.Value == "no data" or #t
 
 		CollectionService
 			:GetInstanceAddedSignal(IMPRESSION_TAG)
-			:Connect(function(part: BasePart?)
+			:Connect(function(part: BasePart)
 				self:_addImpressionObject(part)
 			end)
 
