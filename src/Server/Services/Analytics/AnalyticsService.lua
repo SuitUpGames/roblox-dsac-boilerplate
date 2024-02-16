@@ -781,7 +781,7 @@ end
 	@param data PlayerEvent
 	@return Promise<T>
 ]=]
-function AnalyticsService:LogPlayerEvent(data: PlayerEvent): { [any]: any }
+function AnalyticsService:LogPlayerEvent(data: PlayerEvent)
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
@@ -823,7 +823,7 @@ end
 	@param data MarketplacePurchaseEvent
 	@return Promise<T>
 ]=]
-function AnalyticsService:LogMarketplacePurchase(data: MarketplacePurchaseEvent): { [any]: any }
+function AnalyticsService:LogMarketplacePurchase(data: MarketplacePurchaseEvent)
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
@@ -865,7 +865,7 @@ end
 	@param data PurchaseEvent
 	@return Promise<T>
 ]=]
-function AnalyticsService:LogPurchase(data: PurchaseEvent): { [any]: any }
+function AnalyticsService:LogPurchase(data: PurchaseEvent)
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
@@ -923,7 +923,7 @@ end
 	@param data ResourceEvent
 	@return Promise<T>
 ]=]
-function AnalyticsService:LogResourceEvent(data: ResourceEvent): { [any]: any }
+function AnalyticsService:LogResourceEvent(data: ResourceEvent)
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
@@ -978,7 +978,7 @@ end
 	@param data ErrorEvent
 	@return Promise<T>
 ]=]
-function AnalyticsService:LogError(data: ErrorEvent): { [any]: any }
+function AnalyticsService:LogError(data: ErrorEvent)
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
@@ -1035,7 +1035,7 @@ end
 	@param data ProgressionEvent
 	@return Promise<T>
 ]=]
-function AnalyticsService:LogProgression(data: ProgressionEvent): { [any]: any }
+function AnalyticsService:LogProgression(data: ProgressionEvent)
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with AnalyticsService:SetOptions()")
@@ -1214,7 +1214,7 @@ end
 	@param remote RemoteConfig -- The name, default value, and context of the remote configuration
 	@return Promise<T>
 ]=]
-function AnalyticsService:GetRemoteConfig(remote: RemoteConfig): { [any]: any }
+function AnalyticsService:GetRemoteConfig(remote: RemoteConfig)
 	return Promise.new(function(resolve, reject)
 		if not remote then
 			return reject("AnalyticsService.GetRemoteConfig - remote is required")
@@ -1286,7 +1286,7 @@ local dimensionSetter: { [string]: string } = {
 	@param data DimensionData
 	@return Promise<T>
 ]=]
-function AnalyticsService:SetCustomDimension(data: DimensionData): { [any]: any }
+function AnalyticsService:SetCustomDimension(data: DimensionData)
 	return Promise.new(function(resolve, reject)
 		if not self._enabled then
 			return reject("AnalyticsService must be configured with :SetOptions()")
