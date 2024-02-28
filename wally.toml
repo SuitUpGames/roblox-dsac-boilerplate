@@ -1,5 +1,6 @@
 [package]
 name = "suit-up-repos/roblox-dsac-boilerplate"
+description = "a boilerplate project for suit up games"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
