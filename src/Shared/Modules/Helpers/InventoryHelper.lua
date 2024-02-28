@@ -21,368 +21,356 @@
         FUNCTION    InventoryHelper.CountInventoryEntriesWithFilter( inventory: { InventoryEntry }, filter: {[string]: any}, count: number) -> (number)
 ]]
 
-
 ---------------------------------------------------------------------
-
 
 -- Types
 type InventoryEntry = {
-    GUID: string,
-    Name: string,
-    [string]: any
+	GUID: string,
+	Name: string,
+	[string]: any,
 }
 
-
 -- Constants
-local IS_SERVER = game:GetService( "RunService" ):IsServer()
+local IS_SERVER = game:GetService("RunService"):IsServer()
 
 -- Knit
 local Packages = game.ReplicatedStorage:WaitForChild("Packages")
-local Knit = require( Packages:WaitForChild("Knit") )
-local t = require( Packages.t )
-local CallbackQueue = require( Knit.SharedModules.Util.CallbackQueue )
+local CallbackQueue = require(Knit.SharedModules.Util.CallbackQueue)
+local Knit = require(Packages:WaitForChild("Knit"))
+local t = require(Packages.t)
 
 -- Roblox Services
-local HttpService = game:GetService( "HttpService" )
+local HttpService = game:GetService("HttpService")
 
 -- Variables
-local EditQueue = CallbackQueue.new( 1 )
+local EditQueue = CallbackQueue.new(1)
 
 ---------------------------------------------------------------------
 
-local function SingleThreadedCallback( callback ): ( (...any)->(...any) )
-    return function( ... )
-        return EditQueue:AddAsync( callback, ... )
-    end
+local function SingleThreadedCallback(callback): (...any) -> ...any
+	return function(...)
+		return EditQueue:AddAsync(callback, ...)
+	end
 end
 
 local function ServerOnly()
-    return IS_SERVER, "Attempted to use a server-only method!"
+	return IS_SERVER, "Attempted to use a server-only method!"
 end
-
 
 local function IsValidInventory()
-    return t.values( t.keys(t.string) )
+	return t.values(t.keys(t.string))
 end
-
 
 local InventoryHelper = {}
 
+local tGetUniqueEntryNames = t.tuple(IsValidInventory)
+function InventoryHelper.GetUniqueInventoryEntryNames(inventory: { InventoryEntry }): { string }
+	assert(tGetUniqueEntryNames(inventory))
 
-local tGetUniqueEntryNames = t.tuple( IsValidInventory )
-function InventoryHelper.GetUniqueInventoryEntryNames( inventory: {InventoryEntry} ): ( {string} )
-    assert( tGetUniqueEntryNames(inventory) )
+	local uniqueNames: { string } = {}
+	for _, data: InventoryEntry in pairs(inventory) do
+		if not table.find(uniqueNames, data.Name) then
+			table.insert(uniqueNames, data.Name)
+		end
+	end
 
-    local uniqueNames: {string} = {}
-    for _, data: InventoryEntry in pairs( inventory ) do
-        if ( not table.find(uniqueNames, data.Name) ) then
-            table.insert( uniqueNames, data.Name )
-        end
-    end
-
-    return uniqueNames
+	return uniqueNames
 end
 
+local tCountInventoryEntries = t.tuple(IsValidInventory)
+function InventoryHelper.CountInventoryEntries(inventory: { InventoryEntry }): number
+	assert(tCountInventoryEntries(inventory))
 
-local tCountInventoryEntries = t.tuple( IsValidInventory )
-function InventoryHelper.CountInventoryEntries( inventory: {InventoryEntry} ): ( number )
-    assert( tCountInventoryEntries(inventory) )
+	local count: number = 0
+	for _ in pairs(inventory) do
+		count += 1
+	end
 
-    local count: number = 0
-    for _ in pairs( inventory ) do
-        count += 1
-    end
-
-    return count
+	return count
 end
 
+local tCountInventoryEntriesByName = t.tuple(IsValidInventory, t.string)
+function InventoryHelper.CountInventoryEntriesByName(inventory: { InventoryEntry }, name: string): number
+	assert(tCountInventoryEntriesByName(inventory, name))
 
-local tCountInventoryEntriesByName = t.tuple( IsValidInventory, t.string )
-function InventoryHelper.CountInventoryEntriesByName( inventory: {InventoryEntry}, name: string ): ( number )
-    assert( tCountInventoryEntriesByName(inventory, name) )
+	local count: number = 0
+	for _, data: InventoryEntry in pairs(inventory) do
+		if data.Name == name then
+			count += 1
+		end
+	end
 
-    local count: number = 0
-    for _, data: InventoryEntry in pairs( inventory ) do
-        if ( data.Name == name ) then
-            count += 1
-        end
-    end
-
-    return count
+	return count
 end
 
-function InventoryHelper.CountInventoryEntriesWithFilter( inventory: {InventoryEntry}, filter: {}, count: number? )
-    local entriesCount: number = 0
-    
-    if( not count ) then
-        -- Don't take count into consideration
-        count = math.huge
-    end
-    for _, data in pairs( inventory ) do
-        local isValidFilter: boolean = true 
-        for filterName, filterValue in pairs( filter ) do 
-            if data[ filterName ] ~= filterValue then 
-                isValidFilter = false
-            end
-        end
-        if isValidFilter then 
-            entriesCount += 1
+function InventoryHelper.CountInventoryEntriesWithFilter(inventory: { InventoryEntry }, filter: {}, count: number?)
+	local entriesCount: number = 0
 
-            if( entriesCount == count ) then
-                break
-            end
-        end
-    end
-    return entriesCount
+	if not count then
+		-- Don't take count into consideration
+		count = math.huge
+	end
+	for _, data in pairs(inventory) do
+		local isValidFilter: boolean = true
+		for filterName, filterValue in pairs(filter) do
+			if data[filterName] ~= filterValue then
+				isValidFilter = false
+			end
+		end
+		if isValidFilter then
+			entriesCount += 1
+
+			if entriesCount == count then
+				break
+			end
+		end
+	end
+	return entriesCount
 end
 
+local tGetInventoryEntriesByFilter = t.tuple(IsValidInventory, t.keys(t.string))
+function InventoryHelper.GetInventoryEntriesWithFilter(inventory: { InventoryEntry }, filter: {}, count: number?): ({ InventoryEntry }?, number)
+	assert(tGetInventoryEntriesByFilter(inventory, filter))
+	local filteredInventory = {}
+	local entriesCount: number = 0
 
-local tGetInventoryEntriesByFilter = t.tuple( IsValidInventory, t.keys(t.string))
-function InventoryHelper.GetInventoryEntriesWithFilter( inventory: {InventoryEntry}, filter: {}, count: number? ): ({ InventoryEntry}?, number )
-    assert( tGetInventoryEntriesByFilter(inventory, filter) )
-    local filteredInventory = {}
-    local entriesCount: number = 0
+	if not count then
+		-- Don't take count into consideration
+		count = math.huge
+	end
+	for _, data: InventoryEntry in pairs(inventory) do
+		local isValidFilter: boolean = true
+		for name: string, value: string | number in pairs(filter) do
+			if data[name] ~= value then
+				isValidFilter = false
+				break
+			end
+		end
+		if isValidFilter then
+			filteredInventory[data.GUID] = data
+			entriesCount += 1
 
-    if not count then 
-        -- Don't take count into consideration
-        count = math.huge
-    end
-    for _, data: InventoryEntry in pairs( inventory ) do 
-        local isValidFilter: boolean = true
-        for name: string, value: string | number in pairs(filter) do 
-            if data[name] ~= value then 
-                isValidFilter = false
-                break
-            end
-        end
-        if isValidFilter then 
-            filteredInventory[ data.GUID ] = data
-            entriesCount += 1
-
-            if( entriesCount == count ) then
-                break
-            end
-        end
-    end
-    return filteredInventory, entriesCount
+			if entriesCount == count then
+				break
+			end
+		end
+	end
+	return filteredInventory, entriesCount
 end
 
-local tGetInventoryEntryByGUID = t.tuple( IsValidInventory, t.string )
-function InventoryHelper.GetInventoryEntryByGUID( inventory: {InventoryEntry}, guid: string ): ( InventoryEntry? )
-    assert( tGetInventoryEntryByGUID(inventory, guid) )
-    return inventory[guid]
+local tGetInventoryEntryByGUID = t.tuple(IsValidInventory, t.string)
+function InventoryHelper.GetInventoryEntryByGUID(inventory: { InventoryEntry }, guid: string): InventoryEntry?
+	assert(tGetInventoryEntryByGUID(inventory, guid))
+	return inventory[guid]
 end
 
+local tGetInventoryEntryByGUID = t.tuple(IsValidInventory, t.string)
+function InventoryHelper.GetInventoryEntryByName(inventory: { InventoryEntry }, name: string): InventoryEntry?
+	assert(tGetInventoryEntryByGUID(inventory, name))
 
-local tGetInventoryEntryByGUID = t.tuple( IsValidInventory, t.string )
-function InventoryHelper.GetInventoryEntryByName( inventory: {InventoryEntry}, name: string ): ( InventoryEntry? )
-    assert( tGetInventoryEntryByGUID(inventory, name) )
+	for _, data: InventoryEntry in pairs(inventory) do
+		if data.Name == name then
+			return data
+		end
+	end
 
-    for _, data: InventoryEntry in pairs( inventory ) do
-        if ( data.Name == name ) then
-            return data
-        end
-    end
-
-    return nil
+	return nil
 end
 
-local tGetInventoyEntryByFilter = t.tuple( IsValidInventory, t.string)
-function InventoryHelper.GetInventoryEntryWithFilter( inventory, filter ): ( InventoryEntry? )
-    assert( tGetInventoyEntryByFilter(inventory, filter) ) 
-    local filteredInventory = {}
-    for _, data: InventoryEntry in pairs( inventory ) do 
-        local isInFilter: boolean = true
-        for filterName, filterValue in pairs(filter) do 
-            if not data[filterName] == filterValue then
-                isInFilter = false
-                continue
-            end
-        end
-        if isInFilter then 
-            table.insert(filteredInventory, data)
-        end
-    end
+local tGetInventoyEntryByFilter = t.tuple(IsValidInventory, t.string)
+function InventoryHelper.GetInventoryEntryWithFilter(inventory, filter): InventoryEntry?
+	assert(tGetInventoyEntryByFilter(inventory, filter))
+	local filteredInventory = {}
+	for _, data: InventoryEntry in pairs(inventory) do
+		local isInFilter: boolean = true
+		for filterName, filterValue in pairs(filter) do
+			if not data[filterName] == filterValue then
+				isInFilter = false
+				continue
+			end
+		end
+		if isInFilter then
+			table.insert(filteredInventory, data)
+		end
+	end
 
-    return filteredInventory
+	return filteredInventory
 end
 
+local tGetInventoryEntriesByName = t.tuple(IsValidInventory, t.string, t.string, t.optional(t.every(t.integer, t.numberPositive)))
+function InventoryHelper.GetInventoryEntriesByNameIgnoreGUID(
+	inventory: { InventoryEntry },
+	ignoreGUID: string,
+	name: string,
+	count: number?
+): { InventoryEntry }
+	assert(tGetInventoryEntriesByName(inventory, ignoreGUID, name, count))
 
-local tGetInventoryEntriesByName = t.tuple( IsValidInventory, t.string, t.string, t.optional(t.every(t.integer, t.numberPositive)) )
-function InventoryHelper.GetInventoryEntriesByNameIgnoreGUID( inventory: {InventoryEntry}, ignoreGUID: string, name: string, count: number? ): ( {InventoryEntry} )
-    assert( tGetInventoryEntriesByName(inventory, ignoreGUID, name, count) )
+	count = count or 1
 
-    count = count or 1
+	local sortedEntries: { InventoryEntry } = {}
+	for _, data: InventoryEntry in pairs(inventory) do
+		if (data.Name == name) and (data.GUID ~= ignoreGUID) then
+			table.insert(sortedEntries, data)
+		end
+	end
 
-    local sortedEntries: {InventoryEntry} = {}
-    for _, data: InventoryEntry in pairs( inventory ) do
-        if ( data.Name == name ) and ( data.GUID ~= ignoreGUID ) then
-            table.insert( sortedEntries, data )
-        end
-    end
+	table.sort(sortedEntries, function(a, b)
+		return (a.Level or 0) < (b.Level or 0)
+	end)
 
-    table.sort(sortedEntries, function(a, b)
-        return ( a.Level or 0 ) < ( b.Level or 0 )
-    end)
+	local foundEntries: { InventoryEntry } = {}
+	for i = 1, math.min(count, #sortedEntries) do
+		table.insert(foundEntries, sortedEntries[i])
+	end
 
-    local foundEntries: {InventoryEntry} = {}
-    for i = 1, math.min(count, #sortedEntries) do
-        table.insert( foundEntries, sortedEntries[i] )
-    end
-
-    return foundEntries
+	return foundEntries
 end
 
+local tGetInventoryEntriesByName = t.tuple(IsValidInventory, t.string, t.optional(t.every(t.integer, t.numberPositive)))
+function InventoryHelper.GetInventoryEntriesByName(inventory: { InventoryEntry }, name: string, count: number?): { InventoryEntry }
+	assert(tGetInventoryEntriesByName(inventory, name, count))
 
-local tGetInventoryEntriesByName = t.tuple( IsValidInventory, t.string, t.optional(t.every(t.integer, t.numberPositive)) )
-function InventoryHelper.GetInventoryEntriesByName( inventory: {InventoryEntry}, name: string, count: number? ): ( {InventoryEntry} )
-    assert( tGetInventoryEntriesByName(inventory, name, count) )
+	count = count or math.huge
 
-    count = count or math.huge
+	local sortedEntries: { InventoryEntry } = {}
+	for _, data: InventoryEntry in pairs(inventory) do
+		if data.Name == name then
+			table.insert(sortedEntries, data)
+		end
+	end
 
-    local sortedEntries: {InventoryEntry} = {}
-    for _, data: InventoryEntry in pairs( inventory ) do
-        if ( data.Name == name ) then
-            table.insert( sortedEntries, data )
-        end
-    end
+	table.sort(sortedEntries, function(a, b)
+		return (a.Level or 0) < (b.Level or 0)
+	end)
 
-    table.sort(sortedEntries, function(a, b)
-        return ( a.Level or 0 ) < ( b.Level or 0 )
-    end)
+	local foundEntries: { InventoryEntry } = {}
+	for i = 1, math.min(count, #sortedEntries) do
+		table.insert(foundEntries, sortedEntries[i])
+	end
 
-    local foundEntries: {InventoryEntry} = {}
-    for i = 1, math.min(count, #sortedEntries) do
-        table.insert( foundEntries, sortedEntries[i] )
-    end
-
-    return foundEntries
+	return foundEntries
 end
 
+local tAddToInventory = t.tuple(IsValidInventory, t.keys(t.string))
+function InventoryHelper.AddToInventory(inventory: { InventoryEntry }, data: InventoryEntry): (boolean, InventoryEntry)
+	assert(ServerOnly())
+	assert(tAddToInventory(inventory, data))
 
-local tAddToInventory = t.tuple( IsValidInventory, t.keys(t.string) )
-function InventoryHelper.AddToInventory( inventory: {InventoryEntry}, data: InventoryEntry ): ( boolean, InventoryEntry )
-    assert( ServerOnly() )
-    assert( tAddToInventory(inventory, data) )
+	if not data.GUID then
+		data.GUID = HttpService:GenerateGUID(false)
+	end
 
-    if ( not data.GUID ) then
-        data.GUID = HttpService:GenerateGUID( false )
-    end
+	inventory[data.GUID] = data
 
-    inventory[ data.GUID ] = data
-
-    return true, data
+	return true, data
 end
-InventoryHelper.AddToInventory = SingleThreadedCallback( InventoryHelper.AddToInventory )
+InventoryHelper.AddToInventory = SingleThreadedCallback(InventoryHelper.AddToInventory)
 
+local tAddBatchToInventory = t.tuple(IsValidInventory, t.values(t.table))
+function InventoryHelper.AddBatchToInventory(inventory: { InventoryEntry }, dataBatch: { InventoryEntry }): boolean
+	assert(ServerOnly())
+	assert(tAddBatchToInventory(inventory, dataBatch))
 
-local tAddBatchToInventory = t.tuple( IsValidInventory, t.values(t.table) )
-function InventoryHelper.AddBatchToInventory( inventory: {InventoryEntry}, dataBatch: {InventoryEntry} ): ( boolean )
-    assert( ServerOnly() )
-    assert( tAddBatchToInventory(inventory, dataBatch) )
+	for _, data: InventoryEntry in pairs(dataBatch) do
+		if not data.GUID then
+			data.GUID = HttpService:GenerateGUID(false)
+		end
+		inventory[data.GUID] = data
+	end
 
-    for _, data: InventoryEntry in pairs( dataBatch ) do
-        if ( not data.GUID ) then
-            data.GUID = HttpService:GenerateGUID( false )
-        end
-        inventory[ data.GUID ] = data
-    end
-
-    return true
+	return true
 end
-InventoryHelper.AddBatchToInventory = SingleThreadedCallback( InventoryHelper.AddBatchToInventory )
+InventoryHelper.AddBatchToInventory = SingleThreadedCallback(InventoryHelper.AddBatchToInventory)
 
+local tRemoveFromInventoryByName = t.tuple(IsValidInventory, t.string, t.optional(t.every(t.numberPositive, t.integer)))
+function InventoryHelper.RemoveFromInventoryByName(inventory: { InventoryEntry }, name: string, count: number?): (boolean, { string })
+	assert(ServerOnly())
+	assert(tRemoveFromInventoryByName(inventory, name, count))
 
-local tRemoveFromInventoryByName = t.tuple( IsValidInventory, t.string, t.optional(t.every(t.numberPositive, t.integer)) )
-function InventoryHelper.RemoveFromInventoryByName( inventory: {InventoryEntry}, name: string, count: number? ): ( boolean, {string} )
-    assert( ServerOnly() )
-    assert( tRemoveFromInventoryByName(inventory, name, count) )
+	count = count or 1
 
-    count = count or 1
+	local entriesRemoved: {} = {}
+	for index: string, data: InventoryEntry in pairs(inventory) do
+		if data.Name == name then
+			table.insert(entriesRemoved, index)
+			inventory[index] = nil
 
-    local entriesRemoved: {} = {}
-    for index: string, data: InventoryEntry in pairs( inventory ) do
-        if ( data.Name == name ) then
-            table.insert( entriesRemoved, index )
-            inventory[ index ] = nil
+			count -= 1
+			if count <= 0 then
+				break
+			end
+		end
+	end
 
-            count -= 1
-            if ( count <= 0 ) then
-                break
-            end
-        end
-    end
-
-    return ( #entriesRemoved > 0 ), entriesRemoved
+	return (#entriesRemoved > 0), entriesRemoved
 end
-InventoryHelper.RemoveFromInventoryByName = SingleThreadedCallback( InventoryHelper.RemoveFromInventoryByName )
+InventoryHelper.RemoveFromInventoryByName = SingleThreadedCallback(InventoryHelper.RemoveFromInventoryByName)
 
+local tRemoveFromInventoryByGUID = t.tuple(IsValidInventory, t.string)
+function InventoryHelper.RemoveFromInventoryByGUID(inventory: { InventoryEntry }, guid: string): boolean
+	assert(ServerOnly())
+	assert(tRemoveFromInventoryByGUID(inventory, guid))
 
-local tRemoveFromInventoryByGUID = t.tuple( IsValidInventory, t.string )
-function InventoryHelper.RemoveFromInventoryByGUID( inventory: {InventoryEntry}, guid: string ): ( boolean )
-    assert( ServerOnly() )
-    assert( tRemoveFromInventoryByGUID(inventory, guid) )
+	local itemRemoved: boolean = false
+	for index: string, data: InventoryEntry in pairs(inventory) do
+		if data.GUID == guid then
+			itemRemoved = true
+			inventory[index] = nil
+			break
+		end
+	end
 
-    local itemRemoved: boolean = false
-    for index: string, data: InventoryEntry in pairs( inventory ) do
-        if ( data.GUID == guid ) then
-            itemRemoved = true
-            inventory[ index ] = nil
-            break
-        end
-    end
-
-    return itemRemoved
+	return itemRemoved
 end
-InventoryHelper.RemoveFromInventoryByGUID = SingleThreadedCallback( InventoryHelper.RemoveFromInventoryByGUID )
+InventoryHelper.RemoveFromInventoryByGUID = SingleThreadedCallback(InventoryHelper.RemoveFromInventoryByGUID)
 
+local tRemoveBatchFromInventoryByGUID = t.tuple(IsValidInventory, t.values(t.string))
+function InventoryHelper.RemoveBatchFromInventoryByGUID(inventory: { InventoryEntry }, guids: { string }): (boolean, { string })
+	assert(ServerOnly())
+	assert(tRemoveBatchFromInventoryByGUID(inventory, guids))
 
-local tRemoveBatchFromInventoryByGUID = t.tuple( IsValidInventory, t.values(t.string) )
-function InventoryHelper.RemoveBatchFromInventoryByGUID( inventory: {InventoryEntry}, guids: {string} ): ( boolean, {string} )
-    assert( ServerOnly() )
-    assert( tRemoveBatchFromInventoryByGUID(inventory, guids) )
+	local entriesRemoved: { string } = {}
+	for _, guid: string in pairs(guids) do
+		for index: string, data: InventoryEntry in pairs(inventory) do
+			if data.GUID == guid then
+				table.insert(entriesRemoved, index)
+				inventory[index] = nil
+				break
+			end
+		end
+	end
 
-    local entriesRemoved: {string} = {}
-    for _, guid: string in pairs( guids ) do
-        for index: string, data: InventoryEntry in pairs( inventory ) do
-            if ( data.GUID == guid ) then
-                table.insert( entriesRemoved, index )
-                inventory[ index ] = nil
-                break
-            end
-        end
-    end
-
-    return ( #entriesRemoved > 0 ), entriesRemoved
+	return (#entriesRemoved > 0), entriesRemoved
 end
-InventoryHelper.RemoveBatchFromInventoryByGUID = SingleThreadedCallback( InventoryHelper.RemoveBatchFromInventoryByGUID )
+InventoryHelper.RemoveBatchFromInventoryByGUID = SingleThreadedCallback(InventoryHelper.RemoveBatchFromInventoryByGUID)
 
-local tRemoveFromInventoryByFilter = t.tuple( IsValidInventory, t.keys(t.string), t.optional(t.number) )
-function InventoryHelper.RemoveFromInventoryByFilter( inventory: {InventoryEntry}, filter: string, max_count: number ): (boolean, {string} )
-    assert( ServerOnly() )
-    assert( tRemoveFromInventoryByFilter(inventory, filter, max_count))
+local tRemoveFromInventoryByFilter = t.tuple(IsValidInventory, t.keys(t.string), t.optional(t.number))
+function InventoryHelper.RemoveFromInventoryByFilter(inventory: { InventoryEntry }, filter: string, max_count: number): (boolean, { string })
+	assert(ServerOnly())
+	assert(tRemoveFromInventoryByFilter(inventory, filter, max_count))
 
-    if not max_count then 
-        max_count = 100
-    end
+	if not max_count then
+		max_count = 100
+	end
 
-    local entriesRemoved: {string} = {}
-    local count: number = 0
-    for index, data in pairs( inventory ) do
-        local isValidFilter: boolean = true
-        for name, value in pairs( filter ) do 
-            if data[ name ] ~= value then 
-                isValidFilter = false
-            end
-        end
-        if isValidFilter and count < max_count then 
-            table.insert(entriesRemoved, index)
-            inventory[index] = nil
-            count += 1
-        end
-    end
-    return ( #entriesRemoved > 0 ), entriesRemoved
+	local entriesRemoved: { string } = {}
+	local count: number = 0
+	for index, data in pairs(inventory) do
+		local isValidFilter: boolean = true
+		for name, value in pairs(filter) do
+			if data[name] ~= value then
+				isValidFilter = false
+			end
+		end
+		if isValidFilter and count < max_count then
+			table.insert(entriesRemoved, index)
+			inventory[index] = nil
+			count += 1
+		end
+	end
+	return (#entriesRemoved > 0), entriesRemoved
 end
-InventoryHelper.RemoveFromInventoryByFilter = SingleThreadedCallback( InventoryHelper.RemoveFromInventoryByFilter )
+InventoryHelper.RemoveFromInventoryByFilter = SingleThreadedCallback(InventoryHelper.RemoveFromInventoryByFilter)
 
 return InventoryHelper

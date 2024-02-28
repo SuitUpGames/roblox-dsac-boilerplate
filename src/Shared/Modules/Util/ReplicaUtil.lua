@@ -12,7 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Signal = require(ReplicatedStorage.Packages.Signal)
 local Types = require(ReplicatedStorage.Shared.Modules.Data.Types)
-local Promise = require(ReplicatedStorage.Packages.Promise)
+-- local Promise = require(ReplicatedStorage.Packages.Promise)
 
 --[ Types ]--
 
@@ -79,12 +79,7 @@ end
 --@param path string The path to listen to changes for.
 --@param listener PathListener The function called whenever a path is updated.
 --@return Connection
-function ReplicaUtil.createListener(
-	replicaId: string,
-	listenerType: string,
-	path: string,
-	listener: PathListener
-): Connection
+function ReplicaUtil.createListener(replicaId: string, listenerType: string, path: string, listener: PathListener): Connection
 	-- Create replica signal cache
 	if not Listeners[replicaId] then
 		Listeners[replicaId] = {}

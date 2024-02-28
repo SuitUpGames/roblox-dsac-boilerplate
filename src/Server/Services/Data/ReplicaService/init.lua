@@ -21,7 +21,7 @@ type REPLICA_PARAMS = Types.ReplicaParams
 
 --Module imports (Require)
 local Knit: ANY_TABLE = require(ReplicatedStorage.Packages.Knit)
-local Replica: REPLICA = require(script.Replica)
+local Replica = require(script.Replica)
 
 local ReplicaService: ANY_TABLE = Knit.CreateService({
 	Name = "ReplicaService",
@@ -33,8 +33,6 @@ local ReplicaService: ANY_TABLE = Knit.CreateService({
 	},
 })
 
-
-
 --[=[
     Create a new [Replica] object
     @param ClassName string -- The ClassName of the [Replica] object
@@ -43,12 +41,7 @@ local ReplicaService: ANY_TABLE = Knit.CreateService({
     @param Body {any} -- A key/pair table of values to replicate to the client (Accepts strings as keys, and key/pair values/arrays - do not mix key/pair + arrays together!)
     @return Promise<T> -- Returns a promise that resolves with [Replica], replicaId: string if a replica is successfully created, and rejects if it is not
 ]=]
-function ReplicaService:CreateReplica(
-	ClassName: string,
-	Replication: { Player } | string,
-	Tags: ANY_TABLE | nil,
-	Body: ANY_TABLE
-): REPLICA
+function ReplicaService:CreateReplica(ClassName: string, Replication: { Player } | string, Tags: ANY_TABLE | nil, Body: ANY_TABLE): REPLICA
 	local replicaParams: REPLICA_PARAMS = {
 		Replication = Replication,
 		Data = Body,
@@ -73,8 +66,8 @@ function ReplicaService:CreateReplica(
 	end)
 end
 
-function ReplicaService:ReplicateChangesToClient(Replication: {Player}, replicaId: string, listenerType: string, path: string, ...: any)
-	for _,Player in Replication do
+function ReplicaService:ReplicateChangesToClient(Replication: { Player }, replicaId: string, listenerType: string, path: string, ...: any)
+	for _, Player in Replication do
 		self.Client.replicaListener:Fire(Player, replicaId, listenerType, path, ...)
 	end
 end

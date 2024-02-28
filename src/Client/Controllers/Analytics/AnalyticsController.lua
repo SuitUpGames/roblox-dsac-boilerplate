@@ -7,16 +7,16 @@
 
 --!strict
 
-local Workspace = game:GetService("Workspace")
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local CollectionService = game:GetService("CollectionService")
-local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local Workspace = game:GetService("Workspace")
 
 local Packages: any = ReplicatedStorage.Packages
-local Knit: any = require(Packages.Knit)
 local Janitor: any = require(Packages.Janitor)
+local Knit: any = require(Packages.Knit)
 
 local IMPRESSION_INTERVAL: number = 1
 local IMPRESSION_MAX_DISTANCE: number = 100
@@ -30,8 +30,8 @@ local AnalyticsController = Knit.CreateController({
 })
 
 export type ImpressionPart = {
-	part: BasePart;
-	name: string;
+	part: BasePart,
+	name: string,
 }
 
 function AnalyticsController:KnitInit()
@@ -48,12 +48,12 @@ function AnalyticsController:KnitStart()
 		local playerTeleportedToGame: boolean = false
 		local timeout: number = 10
 
-local teleportData: StringValue? = ReplicatedFirst:WaitForChild("teleportData", timeout)
-playerTeleportedToGame = teleportData and (teleportData.Value == "no data" or #teleportData.Value==0)
+		local teleportData: StringValue? = ReplicatedFirst:WaitForChild("teleportData", timeout)
+		playerTeleportedToGame = teleportData ~= nil and (teleportData.Value == "no data" or #teleportData.Value == 0)
 
 		if playerTeleportedToGame then
 			self.AnalyticsService.LogEvent:Fire({
-				event = "Player:TeleportedToGame"
+				event = "Player:TeleportedToGame",
 			})
 		end
 	end)
@@ -69,7 +69,7 @@ playerTeleportedToGame = teleportData and (teleportData.Value == "no data" or #t
 
 		if playerJoinedFriend then
 			self.AnalyticsService.LogEvent:Fire({
-				event = "Player:JoinedFriend"
+				event = "Player:JoinedFriend",
 			})
 		end
 	end)
@@ -91,22 +91,18 @@ playerTeleportedToGame = teleportData and (teleportData.Value == "no data" or #t
 			self:_addImpressionObject(part)
 		end
 
-		CollectionService
-			:GetInstanceAddedSignal(IMPRESSION_TAG)
-			:Connect(function(part: BasePart)
-				self:_addImpressionObject(part)
-			end)
+		CollectionService:GetInstanceAddedSignal(IMPRESSION_TAG):Connect(function(part: BasePart)
+			self:_addImpressionObject(part)
+		end)
 
-		CollectionService
-			:GetInstanceRemovedSignal(IMPRESSION_TAG)
-			:Connect(function(part: BasePart)
-				for index, data: ImpressionPart in pairs(self._impressionParts) do
-					if data.part == part then
-						table.remove(self._impressionParts, index)
-						break
-					end
+		CollectionService:GetInstanceRemovedSignal(IMPRESSION_TAG):Connect(function(part: BasePart)
+			for index, data: ImpressionPart in pairs(self._impressionParts) do
+				if data.part == part then
+					table.remove(self._impressionParts, index)
+					break
 				end
-			end)
+			end
+		end)
 	end)
 end
 
@@ -135,23 +131,21 @@ function AnalyticsController:_addImpressionObject(part: BasePart)
 	local tagName: string = part:GetAttribute(IMPRESSION_ATTRIBUTE_NAME) or part.Name
 
 	self._impressionParts[#self._impressionParts + 1] = {
-		part = part;
-		name = tagName;
+		part = part,
+		name = tagName,
 	} :: ImpressionPart
 end
 
 function AnalyticsController:_track()
-	local playerOrigin: Vector3? = self._character and
-		self._character.HumanoidRootPart and
-		self._character.HumanoidRootPart.Position
+	local playerOrigin: Vector3? = self._character and self._character.HumanoidRootPart and self._character.HumanoidRootPart.Position
 	local camera: Camera? = Workspace.CurrentCamera
 
 	if not playerOrigin or not camera then
 		return
 	end
 
-for index: number = #self._impressionParts, 1, -1 do
-     local data: ImpressionPart = self._impressionParts[index]
+	for index: number = #self._impressionParts, 1, -1 do
+		local data: ImpressionPart = self._impressionParts[index]
 		if not data.part or not data.part.Parent then
 			table.remove(self._impressionParts, index)
 			continue

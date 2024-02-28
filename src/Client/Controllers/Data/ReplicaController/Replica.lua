@@ -24,9 +24,9 @@ type ReplicaPathListener = Types.ReplicaPathListener
 
 --[ Dependencies ]--
 
-local Trove: ANY_TABLE = require(ReplicatedStorage.Packages.trove)
-local ReplicaUtil: ANY_TABLE = require(ReplicatedStorage.Shared.Modules.Util.ReplicaUtil)
 local Promise: ANY_TABLE = require(ReplicatedStorage.Packages.Promise)
+local ReplicaUtil: ANY_TABLE = require(ReplicatedStorage.Shared.Modules.Util.ReplicaUtil)
+local Trove: ANY_TABLE = require(ReplicatedStorage.Packages.trove)
 
 --[ Root ]--
 
@@ -134,11 +134,7 @@ end
 --@param path string The path for the listener.
 --@param listener function The listener to call when the path changes.
 --@return RBXScriptConnection
-function ClientReplica:_createListener(
-	listenerType: string,
-	path: string,
-	listener: ReplicaPathListener
-): RBXScriptConnection
+function ClientReplica:_createListener(listenerType: string, path: string, listener: ReplicaPathListener): RBXScriptConnection
 	local connection = ReplicaUtil.createListener(self.ReplicaId, listenerType, path, listener)
 	return self._trove:Add(connection)
 end

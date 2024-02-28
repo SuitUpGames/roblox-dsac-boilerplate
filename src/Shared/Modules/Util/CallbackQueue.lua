@@ -17,10 +17,10 @@
 local DEFAULT_TIMEOUT = 60 -- How long can a process in the queue take before it times out, by default?
 
 -- Knit
-local Knit = require( game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Knit") )
-local Janitor = require( Knit.Packages.Janitor )
-local Promise = require( Knit.Packages.Promise )
-local t = require( Knit.Packages.t )
+local Janitor = require(Knit.Packages.Janitor)
+local Knit = require(game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Knit"))
+local Promise = require(Knit.Packages.Promise)
+local t = require(Knit.Packages.t)
 
 -- Modules
 
@@ -31,132 +31,128 @@ local RunService = game:GetService("RunService")
 
 ---------------------------------------------------------------------
 
-
 local CallbackQueue = {}
 CallbackQueue.__index = CallbackQueue
 
-
 -- Creates new callback queue
-local tNew = t.tuple( t.optional(t.numberPositive) )
-function CallbackQueue.new( processTimeout: number? ): table
-    assert( tNew(processTimeout) )
+local tNew = t.tuple(t.optional(t.numberPositive))
+function CallbackQueue.new(processTimeout: number?): table
+	assert(tNew(processTimeout))
 
-    processTimeout = processTimeout or DEFAULT_TIMEOUT
+	processTimeout = processTimeout or DEFAULT_TIMEOUT
 
-    local self = setmetatable( {}, CallbackQueue )
-    self._janitor = Janitor.new()
+	local self = setmetatable({}, CallbackQueue)
+	self._janitor = Janitor.new()
 
-    self._queue = {}
-    self._processTimeout = processTimeout
+	self._queue = {}
+	self._processTimeout = processTimeout
 
-    self._processNextEvent = Instance.new( "BindableEvent" )
-    self._janitor:Add( self._processNextEvent )
+	self._processNextEvent = Instance.new("BindableEvent")
+	self._janitor:Add(self._processNextEvent)
 
-    local function ProcessLoop(): ()
-        local missedEvent: boolean = false
-        local function ProcessEvent(): ()
-            missedEvent = true
-        end
-        self._processNextEvent.Event:Connect( ProcessEvent )
-        while ( not self._destroyed ) do
-            if ( not missedEvent ) then
-                self._processNextEvent.Event:Wait()
-            end
-            missedEvent = false
-            task.spawn( self._processNext, self )
-        end
-    end
-    task.spawn( ProcessLoop )
+	local function ProcessLoop(): ()
+		local missedEvent: boolean = false
+		local function ProcessEvent(): ()
+			missedEvent = true
+		end
+		self._processNextEvent.Event:Connect(ProcessEvent)
+		while not self._destroyed do
+			if not missedEvent then
+				self._processNextEvent.Event:Wait()
+			end
+			missedEvent = false
+			task.spawn(self._processNext, self)
+		end
+	end
+	task.spawn(ProcessLoop)
 
-    return self
+	return self
 end
-
 
 -- Executes next item in queue
 function CallbackQueue:_processNext(): ()
-    if ( self.Processing ) then
-        return
-    end
+	if self.Processing then
+		return
+	end
 
-    local nextCallback: ()->()? = self._queue[ 1 ]
-    if ( nextCallback ) then
-        self.Processing = true
+	local nextCallback: () -> ()? = self._queue[1]
+	if nextCallback then
+		self.Processing = true
 
-        local continued: boolean?
-        local function Continue(): ()
-            if ( continued ) then return end
-            continued = true
+		local continued: boolean?
+		local function Continue(): ()
+			if continued then
+				return
+			end
+			continued = true
 
-            table.remove( self._queue, 1 )
-            self.Processing = false
+			table.remove(self._queue, 1)
+			self.Processing = false
 
-            self._processNextEvent:Fire()
-        end
+			self._processNextEvent:Fire()
+		end
 
-        local complete: boolean?
-        local function Process(): ()
-            local result = {pcall(function()
-                return nextCallback.Callback( table.unpack(nextCallback.Args) )
-            end)}
-            if ( not result[1] ) then
-                warn( "CallbackQueue:", tostring(result[2]) )
-            else
-                table.remove( result, 1 )
-                nextCallback.ResolvePromise( unpack(result) )
-            end
-            complete = true
-            Continue()
-        end
-        task.spawn( Process )
+		local complete: boolean?
+		local function Process(): ()
+			local result = { pcall(function()
+				return nextCallback.Callback(table.unpack(nextCallback.Args))
+			end) }
+			if not result[1] then
+				warn("CallbackQueue:", tostring(result[2]))
+			else
+				table.remove(result, 1)
+				nextCallback.ResolvePromise(unpack(result))
+			end
+			complete = true
+			Continue()
+		end
+		task.spawn(Process)
 
-        local nextStart = os.clock()
-        repeat until ( complete ) or ( (os.clock()-nextStart) >= self._processTimeout ) or ( not task.wait() )
-        Continue()
-    end
+		local nextStart = os.clock()
+		repeat
+		until complete or ((os.clock() - nextStart) >= self._processTimeout) or (not task.wait())
+		Continue()
+	end
 end
-
 
 -- Adds callback to queue
-local tAdd = t.tuple( t.callback )
-function CallbackQueue:Add( callback: ()->(), ...: any ): ( Promise )
-    assert( tAdd(callback) )
-    assert( not self._destroyed, "Attempted to add to a destroyed CallbackQueue!" )
+local tAdd = t.tuple(t.callback)
+function CallbackQueue:Add(callback: () -> (), ...: any): Promise
+	assert(tAdd(callback))
+	assert(not self._destroyed, "Attempted to add to a destroyed CallbackQueue!")
 
-    -- This is super ugly, but I am unsure if there is a better way to do this?
-    local resolvePromise: ()->()
-    local finishPromise = Promise.new(function( resolve )
-        resolvePromise = resolve
-    end):catch( warn )
+	-- This is super ugly, but I am unsure if there is a better way to do this?
+	local resolvePromise: () -> ()
+	local finishPromise = Promise.new(function(resolve)
+		resolvePromise = resolve
+	end):catch(warn)
 
-    table.insert( self._queue, {
-        Callback = callback;
-        Args = {...};
-        ResolvePromise = resolvePromise;
-    } )
-    self._processNextEvent:Fire()
+	table.insert(self._queue, {
+		Callback = callback,
+		Args = { ... },
+		ResolvePromise = resolvePromise,
+	})
+	self._processNextEvent:Fire()
 
-    return finishPromise
+	return finishPromise
 end
-
 
 -- Adds callback to queue asynchronously
-function CallbackQueue:AddAsync( callback: ()->(), ...: any ): ( ...any )
-    local finishPromise: {} = self:Add( callback, ... )
+function CallbackQueue:AddAsync(callback: () -> (), ...: any): ...any
+	local finishPromise: {} = self:Add(callback, ...)
 
-    local result: {} = {
-        finishPromise:await()
-    }
-    table.remove( result, 1 )
+	local result: {} = {
+		finishPromise:await(),
+	}
+	table.remove(result, 1)
 
-    return table.unpack( result )
+	return table.unpack(result)
 end
-
 
 -- Destroys callback queue
 function CallbackQueue:Destroy(): ()
-    self._destroyed = true
-    self._janitor:Destroy()
+	self._destroyed = true
+	self._janitor:Destroy()
 end
-
 
 return CallbackQueue
