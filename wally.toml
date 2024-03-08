@@ -6,11 +6,26 @@ registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
-Knit = "sleitnick/knit@1.5.3"
+# Core
+Import = "vocksel/import@2.1.0"
+Knit = "sleitnick/knit@1.7.0"
 Promise = "evaera/promise@4.0.0"
-Signal = "sleitnick/signal@1.5.0"
-Janitor = "howmanysmall/janitor@1.15.6"
-t = "shanebutt/t@1.3.1"
-Timer = "sleitnick/timer@1.1.2"
-trove = "sleitnick/trove@1.0.1"
+# Analytics
 GameAnalytics = "dig1t/gameanalytics-sdk@2.2.4"
+# RbxUtil
+Comm = "sleitnick/comm@1.0.1"
+Component = "sleitnick/component@2.4.8"
+Input = "sleitnick/input@2.2.1"
+Janitor = "howmanysmall/janitor@1.15.6"
+Observers = "sleitnick/observers@0.3.3"
+Option = "sleitnick/option@1.0.5"
+Shake = "sleitnick/shake@0.1.7"
+Signal = "sleitnick/signal@2.0.1"
+TableUtil = "sleitnick/table-util@1.2.1"
+Timer = "sleitnick/timer@1.1.2"
+Trove = "sleitnick/trove@1.1.0"
+WaitFor = "sleitnick/wait-for@1.0.0"
+# Typechecking
+t = "osyrisrblx/t@3.0.0"
+# Spring (for animations)
+spr = "artisticvampyre/spr@2.1.1"
